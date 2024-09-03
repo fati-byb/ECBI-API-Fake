@@ -71,12 +71,8 @@ UserSchema.pre('save', async function(next) {
 
 });
 // Compare password
-UserSchema.methods.comparePassword = async function(candidatePassword) {
-    try {
-        return await bcrypt.compare(candidatePassword, this.password);
-    } catch (err) {
-        throw new Error('Password comparison failed');
-    }
+UserSchema.methods.comparePassword = function(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
 };
 
 

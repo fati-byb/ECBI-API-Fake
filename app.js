@@ -1,12 +1,13 @@
 const express = require('express'),
     mongoose = require('mongoose'),
     bodyParser = require('body-parser'),
-    logger = require('morgan'),
-    passport = require('passport'),
+    logger = require('morgan');
+     passport = require('passport');
     cors = require('cors'),
     moment = require('moment');
 
 const apiRouter = require('./routes/index.routes');
+require('./config/passport')(passport);
 
 const app = express();
 
@@ -54,8 +55,6 @@ app.use(bodyParser.json({limit: '20mb'}));
 app.use(bodyParser.urlencoded({limit: '20mb', extended: true}));
 
 app.use(passport.initialize());
-app.use(passport.session());
-require('./config/passport')(passport);
 
 //-------------- Routes --------------//
 

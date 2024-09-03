@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
-
+const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose')
 const userController = {};
 
 userController.createUser = async (req, res, next) => {
@@ -20,12 +21,16 @@ userController.createUser = async (req, res, next) => {
     }
 };
 
+
 userController.updateUser = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { username, email, password, role } = req.body;
 
-        // Find the user by ID and update
+         if (!mongoose.Types.ObjectId) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID' });
+        }
+ 
         const user = await User.findById(id);
         if (!user) {
             const error = new Error('User not found');
@@ -33,7 +38,7 @@ userController.updateUser = async (req, res, next) => {
             return next(error);
         }
 
-        // Update fields
+       
         if (username) user.username = username;
         if (email) user.email = email;
         if (password) user.password = await bcrypt.hash(password, 10);
@@ -45,6 +50,5 @@ userController.updateUser = async (req, res, next) => {
         next(err);
     }
 };
-
 
 module.exports = userController;
