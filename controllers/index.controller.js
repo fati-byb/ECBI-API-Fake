@@ -3,7 +3,7 @@ const indexController = {}
 
 indexController.index = async (req, res, next) => {
     try {
-        res.send({
+        res.json({
             success: true,
             'message': 'express boot api index'
         })
