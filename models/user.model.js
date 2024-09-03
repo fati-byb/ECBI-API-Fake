@@ -30,7 +30,7 @@ const UserSchema = mongoose.Schema({
 
     role: {
         type: String,
-        enum: ['ROLE_USER', 'ROLE_ADMIN'],
+        enum: ['SUPER_ADMIN', 'SOUS_ADMIN','FINAL_USER'],
         default: 'ROLE_USER'
     },
 
@@ -70,15 +70,17 @@ UserSchema.pre('save', async function(next) {
     }
 
 });
+// Compare password
+UserSchema.methods.comparePassword = async function(candidatePassword) {
+    try {
+        return await bcrypt.compare(candidatePassword, this.password);
+    } catch (err) {
+        throw new Error('Password comparison failed');
+    }
+};
 
-UserSchema.methods.isPasswordMatch = function(password, hashed, callback) {
-    bcrypt.compare(password, hashed, (err, success) => {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, success);
-    })
-}
+
+
 
 UserSchema.methods.toJSON = function() {
     const userObject = this.toObject();
