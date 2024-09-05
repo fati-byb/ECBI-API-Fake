@@ -1,42 +1,63 @@
+// routes/index.js
 const router = require('express').Router();
 const passport = require('passport');
-const indexController = require('../controllers/index.controller');
-const userController = require('../controllers/user.controller');
-const authController = require('../controllers/auth.controller');
 
+// Import user and restaurant routes
+const userRoutes = require('./users.routes');
+const restaurantRoutes = require('./restaurants.routes');
+const User = require('../models/user.model');
 // const User = require('../models/user.model');
 
- router.get('/', indexController.index );
- router.post('/auth', authController.login);
+// Public routes
+router.get('/', (req, res) => {
+    res.send('Welcome to the API');
+});
 
-router.post('/users', userController.createUser)
-// router.get('/user/verify/:id', async (req, res, next)=>{
-//         const {id}= req.params;
-//         const user = await User.findById(id)
-//         user.enabled=true 
-//         await user.save()
-//         res.json({user})
-// })
 
-//Customize and Protect the routes
+router.get('/editEnable/:id', async (req, res) => {
+        try {
+            const { id } = req.params;
+            
+            // Find the user by ID
+            const user = await User.findById(id);
+            
+            // If the user does not exist, return an error response
+            if (!user) {
+                return res.status(404).json({ message: "User does not exist" });
+            }
+    
+            // Update the 'enabled' field
+            user.enabled = true;
+    
+            // Save the updated user to the database
+            await user.save();
+    
+            // Return a success response
+            return res.status(200).json({ message: "User enabled successfully", user });
+        } catch (error) {
+            // Handle any errors that occur
+            return res.status(500).json({ message: "Server error", error });
+        }
+    });
+// 
+
+// Authentication route
+router.post('/auth', require('../controllers/user/auth.controller').login);
+
+// Protect routes with JWT authentication
 router.all('*', (req, res, next) => {
-    passport.authenticate('jwt', {session: false}, (err, user) => {
-         if(err || !user) {
-            const error = new Error('Unauthorized !');
-            error.status = 401;
-            next(error);
+    passport.authenticate('jwt', { session: false }, (err, user) => {
+        if (err || !user) {
+            return res.status(401).json({ message: 'Unauthorized' });
         }
         req.user = user;
-        return next();
+        next();
     })(req, res, next);
 });
 
 
-
-//----------- Protected Routes -----------//
-
-//router.use('/users', require('./users.routes'));
-router.put('/users/:id',userController.updateUser);  
-
+router.use('/users', userRoutes);
+router.use('/restaurants', restaurantRoutes);
 
 module.exports = router;
+
