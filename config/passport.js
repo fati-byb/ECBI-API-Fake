@@ -13,10 +13,11 @@ module.exports = (passport) => {
             console.log(jwtPayload)
             const user = await User.findById(jwtPayload._id);
             console.log(user)
-            // Use 'id' from payload
+            
             if (user && user.enabled) {
                 return done(null, user);
             }
+            
             return done(null, false);
         } catch (err) {
             return done(err, false);
