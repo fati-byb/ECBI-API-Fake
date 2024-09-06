@@ -35,7 +35,7 @@ restaurantController.deleteRestaurant = async (req, res, next) => {
 };
 restaurantController.createRestaurant = async (req, res, next) => {
     try {
-        const {  website, phone, owner, email, reservation, menu, state, visibility } = req.body;
+        const {  website, phone, name, email } = req.body;
         const existingResto = await Restaurant.findOne({ email });
 
         if (existingResto) {
@@ -45,12 +45,10 @@ restaurantController.createRestaurant = async (req, res, next) => {
             
             website,
             phone,
-            owner,
+            name,
             email,
-            reservation,
-            menu,
-            state,
-            visibility
+          
+            
         });
 
         const restaurant = await newRestaurant.save();
