@@ -6,12 +6,10 @@ const passport = require('passport');
 const userRoutes = require('./users.routes');
 const restaurantRoutes = require('./restaurants.routes');
 const User = require('../models/user.model');
+const archivedRestaurantsRoutes = require('./archivedRestaurants.routes'); // Ensure this is correct
 // const User = require('../models/user.model');
 
 // Public routes
-router.get('/', (req, res) => {
-    res.send('Welcome to the API');
-});
 
 
 router.get('/editEnable/:id', async (req, res) => {
@@ -55,9 +53,11 @@ router.all('*', (req, res, next) => {
     })(req, res, next);
 });
 
+//protected routes
 
 router.use('/users', userRoutes);
 router.use('/restaurants', restaurantRoutes);
+router.use('/arc', archivedRestaurantsRoutes)
 
 module.exports = router;
 
