@@ -13,9 +13,9 @@ const ArchivedRestaurantSchema = new mongoose.Schema({
     trim: true,
     default:'resto duh'
   },
-  phone: {
+  telephone: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
   },
   email: {
