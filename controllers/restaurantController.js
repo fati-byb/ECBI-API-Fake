@@ -24,26 +24,24 @@ exports.addRestaurant = async (req, res) => {
 
 //modifier
 exports.updateRestaurant = async (req, res) => {
+    const { id } = req.params;  // Ensure this matches what is being sent
+    const updateData = req.body;
+  
     try {
-        const { id } = req.params;
-        const { website, reservation, menu, owner, phone, email } = req.body;
-
-        const updatedRestaurant = await Restaurant.findByIdAndUpdate(
-            id,
-            { website, reservation, menu, owner, phone, email },
-            { new: true }
-        );
-
-        if (!updatedRestaurant) {
-            return res.status(404).json({ message: 'Restaurant non trouvé' });
-        }
-
-        res.status(200).json(updatedRestaurant);
+      const restaurant = await Restaurant.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+  
+      if (!restaurant) {
+        return res.json({ message: 'Restaurant not found' });
+      }
+  
+      res.status(200).json(restaurant);  // Return updated restaurant
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du restaurant:', error.message);
-        res.status(500).json({ message: 'Erreur lors de la mise à jour', error });
+      res.json({ message: error.message });
     }
-};
+  };
+  
+  
+
 
 // // Obtenir un restaurant par ID
 // exports.getRestaurantById = async (req, res) => {
