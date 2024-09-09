@@ -16,13 +16,14 @@ authController.login = async (req, res, next) => {
         }
 
         // Generate JWT token
+        const role= user.role;
         const token = jwt.sign(
             { _id: user._id, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRATION }
         );
 
-        res.json({ success: true, token });
+        res.json({ success: true, token, role});
     } catch (err) {
         next(err);
     }
