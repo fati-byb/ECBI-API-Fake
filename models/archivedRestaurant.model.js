@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const RestaurantSchema = new mongoose.Schema({
+const ArchivedRestaurantSchema = new mongoose.Schema({
   
   website: {
     type: String,
@@ -26,19 +26,19 @@ const RestaurantSchema = new mongoose.Schema({
   state: {
     type: String,
     enum: ['blocked', 'actif'],
-    default: 'actif',
+    default: 'blocked',
     required: true,
   },
   visibility: {
     type: String,
     enum: ['show', 'no show'],
-    default: 'show',
+    default: 'no show',
     required: true,
   },
 }, {
   timestamps: true, 
 });
 
-const Restaurant = mongoose.model('Restaurant', RestaurantSchema);
+const ArchivedRestaurant = mongoose.model('ArchivedRestaurant', ArchivedRestaurantSchema);
 
-module.exports = Restaurant;
+module.exports = ArchivedRestaurant;

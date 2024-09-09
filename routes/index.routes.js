@@ -10,10 +10,8 @@ const User = require('../models/user.model');
 // const User = require('../models/user.model');
 
 // Public routes
-router.get('/', (req, res) => {
-    res.send('Welcome to the API');
-});
 
+router.use('/restaurants', restaurantRoutes);
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
@@ -58,9 +56,9 @@ router.all('*', (req, res, next) => {
     })(req, res, next);
 });
 
+//protected routes
 
 router.use('/users', userRoutes);
-router.use('/restaurants', restaurantRoutes);
-
+ 
 module.exports = router;
 

@@ -16,9 +16,13 @@ const UserSchema = mongoose.Schema({
         type: String,
         lowercase: true,
         unique: true,
-        required: [true, "can't be blank"],
+        required: [false, "can't be blank"],
         match: [/\S+@\S+\.\S+/, 'is invalid'],
         index: true
+    },
+    telephone:{
+        type:String, 
+        required: false
     },
 
     password: {
@@ -28,8 +32,8 @@ const UserSchema = mongoose.Schema({
 
     role: {
         type: String,
-        enum: ['SUPER_ADMIN', 'SOUS_ADMIN', 'FINAL_USER'],
-        default: 'FINAL_USER'
+        enum: ['SUPER_ADMIN','SOUS_ADMIN','FINAL_USER',"RESTO_SUPER_ADMIN","RESTO_SOUS_ADMIN"],
+        default: 'ROLE_USER'
     },
 
     resetPasswordToken: {
