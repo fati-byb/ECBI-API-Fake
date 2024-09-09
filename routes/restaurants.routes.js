@@ -1,8 +1,12 @@
  const router = require('express').Router();
 const restaurantController = require('../controllers/restaurants/restaurant.controller');
 
-router.post('/addResto', restaurantController.createRestaurant);
-router.delete('/deleteResto/:id', restaurantController.deleteRestaurant);
-router.get('/getResto', restaurantController.getRestaurant);
+router.post('/add-pointvente', restaurantController.createRestaurant);
+router.get('/get-pointvente', restaurantController.getRestaurant);
 router.put('/updateResto/:id', restaurantController.updateRestaurant);
+
+
+router.get('/archived', restaurantController.getArchivedRestaurants);
+router.put('/archived-pointvente/:id', restaurantController.archiveRestaurant)
+ 
 module.exports = router;
