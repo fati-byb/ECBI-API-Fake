@@ -1,11 +1,12 @@
-const mongoose = require('mongoose'), 
-    bcrypt = require('bcryptjs'), 
-    hash = require('../config/hash')
-;
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
+// Fonction pour hacher les mots de passe
+const hashPassword = async (password) => {
+    return bcrypt.hash(password, 10);
+};
 
 const UserSchema = mongoose.Schema({
-
     username: {
         type: String,
         lowercase: true
@@ -17,10 +18,7 @@ const UserSchema = mongoose.Schema({
         unique: true,
         required: [false, "can't be blank"],
         match: [/\S+@\S+\.\S+/, 'is invalid'],
-        username: {
-            type: String,
-            lowercase: true
-        },  index: true
+        index: true
     },
     telephone:{
         type:String, 
@@ -60,63 +58,60 @@ const UserSchema = mongoose.Schema({
     }
 });
 
-UserSchema.pre('save', async function(next) {
-
+// Hash le mot de passe avant de sauvegarder l'utilisateur
+UserSchema.pre('save', async function (next) {
     try {
         if (this.isModified('password')) {
-            this.password = await hash(this.password);
+            this.password = await hashPassword(this.password);
         }
-
         next();
-
     } catch (e) {
         return next(e);
     }
-
 });
-// Compare password
-UserSchema.methods.comparePassword = function(candidatePassword) {
+
+// Compare les mots de passe
+UserSchema.methods.comparePassword = function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Méthode pour activer l'utilisateur
+UserSchema.methods.activate = async function () {
+    this.enabled = true;
+    return this.save();
+};
 
-
-
-UserSchema.methods.toJSON = function() {
+// Exclure les champs sensibles de la réponse JSON
+UserSchema.methods.toJSON = function () {
     const userObject = this.toObject();
-
     delete userObject.password;
     delete userObject.resetPasswordExpires;
     delete userObject.resetPasswordToken;
     delete userObject.activationCode;
     delete userObject.activationCodeExpires;
-
     return userObject;
-}
+};
 
-UserSchema.post('save', function(error, doc, next) {
+// Gérer les erreurs de duplication d'email
+UserSchema.post('save', function (error, doc, next) {
     if (error.name === 'MongoError' && error.code === 11000) {
-        const item =  error.message.split(':')[2].split(' ')[1].split('_')[0]; 
-        let message = 'duplicate email';
+        const item = error.message.split(':')[2].split(' ')[1].split('_')[0]; 
+        let message = 'Duplicate email';
         let code = undefined;
 
-        switch (item) {
-            case 'email':
-                code = 'USER_AUTH_DUPLICATE_EMAIL'
-                break;
-        
-            default:
-                break;
+        if (item === 'email') {
+            code = 'USER_AUTH_DUPLICATE_EMAIL';
         }
-        let err = new Error(message)
-        if(code){
-         err = new Error(JSON.stringify({message, code_error: code}))
+
+        let err = new Error(message);
+        if (code) {
+            err = new Error(JSON.stringify({ message, code_error: code }));
         }
         next(err);
     } else {
-      next(error);
+        next(error);
     }
-  });
+});
 
 const User = mongoose.model('User', UserSchema);
 
