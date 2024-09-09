@@ -2,6 +2,7 @@
 const router = require('express').Router();
 const passport = require('passport');
 
+
 // Import user and restaurant routes
 const userRoutes = require('./users.routes');
 const restaurantRoutes = require('./restaurants.routes');
@@ -10,6 +11,7 @@ const User = require('../models/user.model');
 
 // Public routes
 
+router.use('/restaurants', restaurantRoutes);
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
@@ -40,6 +42,8 @@ router.get('/editEnable/:id', async (req, res) => {
 
 // Authentication route
 router.post('/auth', require('../controllers/user/auth.controller').login);
+router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
+
 
 // Protect routes with JWT authentication
 router.all('*', (req, res, next) => {
@@ -55,7 +59,6 @@ router.all('*', (req, res, next) => {
 //protected routes
 
 router.use('/users', userRoutes);
-router.use('/restaurants', restaurantRoutes);
  
 module.exports = router;
 

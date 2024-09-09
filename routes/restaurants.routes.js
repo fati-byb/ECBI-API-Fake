@@ -3,6 +3,7 @@ const restaurantController = require('../controllers/restaurants/restaurant.cont
 
 router.post('/add-pointvente', restaurantController.createRestaurant);
 router.get('/get-pointvente', restaurantController.getRestaurant);
+router.put('/updateResto/:id', restaurantController.updateRestaurant);
 
 
 router.get('/archived', restaurantController.getArchivedRestaurants);
