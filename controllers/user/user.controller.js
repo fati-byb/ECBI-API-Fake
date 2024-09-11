@@ -39,7 +39,6 @@ userController.updateUser = async (req, res, next) => {
         const user = await User.findById(id);
         if (!user) {
             const error = new Error('User not found');
-            error.status = 404;
             return next(error);
         }
 
@@ -62,13 +61,12 @@ userController.activateUser = async (req, res, next) => {
         const { id } = req.params;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: 'Invalid user ID' });
+            return res.json({ success: false, message: 'Invalid user ID' });
         }
 
         const user = await User.findById(id);
         if (!user) {
             const error = new Error('User not found');
-            error.status = 404;
             return next(error);
         }
 
