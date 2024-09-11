@@ -5,13 +5,13 @@ const passport = require('passport');
 
 // Import user and restaurant routes
 const userRoutes = require('./users.routes');
-const restaurantRoutes = require('./restaurants.routes');
+const pointsDeVentesRoutes = require('./pointsdeventes.routes');
 const User = require('../models/user.model');
 // const User = require('../models/user.model');
 
 // Public routes
 
-router.use('/restaurants', restaurantRoutes);
+router.use('/pointDeVente', pointsDeVentesRoutes);
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
