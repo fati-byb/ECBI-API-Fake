@@ -3,11 +3,14 @@ const router = express.Router();
 
 // Import user and restaurant routes
 const userRoutes = require('./users.routes');
-const restaurantRoutes = require('./restaurants.routes');
+const pointsDeVentesRoutes = require('./pointsdeventes.routes');
+const User = require('../models/user.model');
+// const User = require('../models/user.model');
 
 // Public routes
 router.use('/users', userRoutes);
-router.use('/restaurants', restaurantRoutes);
+
+router.use('/pointDeVente', pointsDeVentesRoutes);
 
 // Authentication route
 router.post('/auth', require('../controllers/user/auth.controller').login);
