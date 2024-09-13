@@ -11,29 +11,9 @@ const PointDeVenteSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    default: 'resto duh'
+    default: ''
   },
-  directeur: [
-    {
-      username: {
-        type: String,
-        required: true,
-        trim: true,
-        default: 'directeur'
-      },
-      telephone: {
-        type: String,
-        required: false,
-        trim: true,
-      },
-      email: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-    }
-  ],
-
+ 
   state: {
     type: String,
     enum: ['blocked', 'actif'],

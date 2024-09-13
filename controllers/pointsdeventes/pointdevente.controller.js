@@ -17,6 +17,27 @@ pointDeVenteController.getRestaurant = async (req, res) => {
     }
 };
 
+pointDeVenteController.getRestaurantByName = async (req, res) => {
+    try {
+        const { name } = req.params;
+
+        console.log(`Fetching restaurant with name: ${name}`);
+        
+        // Find the restaurant by name (case-insensitive)
+        const restaurant = await PointDeVente.findOne({name});
+        
+        if (!restaurant) {
+            return res.status(404).json({ message: 'Restaurant not found' });
+        }
+
+        res.status(200).json(restaurant._id);
+    } catch (error) {
+        console.log('Error fetching restaurant by name:', error);
+        res.status(500).json({ error: 'Failed to fetch restaurant by name' });
+    }
+};
+
+
 pointDeVenteController.getArchivedRestaurants = async (req,res) => {
     try {
         console.log('Fetching archived restaurants');
@@ -69,25 +90,19 @@ pointDeVenteController.unarchiveRestaurant = async (req, res, next) => {
 };
 
 pointDeVenteController.createRestaurant = async (req, res, next) => {
+    console.log('we re here')
     try {
-        const { website, name, directeur } = req.body;
+        const { name, website} = req.body;
 
-        const { username, email, telephone } = directeur[0];        
-        const existingResto = await PointDeVente.findOne({email});
-
+        const existingResto = await PointDeVente.findOne({name});
+console.log('existinng point of sale',existingResto)
         if (existingResto) {
             return res.json({ success: false, message: 'Restaurant with this email already exists.' });
         }
         const newRestaurant = new PointDeVente({
-            website,
             name,
-            directeur:[
-                {
-                    username, 
-                    telephone,
-                    email
-                }
-            ]
+            website
+           
             
 
 
