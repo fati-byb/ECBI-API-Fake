@@ -4,25 +4,40 @@ const mongoose = require('mongoose');
 
 const userController = {};
 
-// Création d'un utilisateur
+const PointDeVente = require('../../models/pointdevente.model');
+
 userController.createUser = async (req, res, next) => {
     try {
-        const { username, email, password, role } = req.body;
+        const { email, password, pointOfSale, role, telephone, username } = req.body;
 
-        // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(password, 10);
+         const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.json({ success: false, message: 'User with this email already exists.' });
+        }
 
+         const pointDeVenteId = pointOfSale[0]; // Assuming pointOfSale is an array with the PointDeVente IDs
+        console.log('pointDeVenteId:', pointDeVenteId);
+
+        const pointDeVente = await PointDeVente.findById(pointDeVenteId);
+        if (!pointDeVente) {
+            return res.json({ success: false, message: 'Point of sale not found.' });
+        }
+
+        // Create a new user with the PointDeVenteId
         const newUser = new User({
             username,
             email,
-            password: hashedPassword,
-            role
+            telephone,
+            password,
+            role,
+            pointOfSale: [pointDeVente._id] // Add the PointDeVente ID to the user's array of pointOfSale
         });
 
-        const user = await newUser.save();
-        res.status(201).json({ success: true, data: user });
-    } catch (err) {
-        next(err);
+        const savedUser = await newUser.save();
+        res.json({ success: true, data: savedUser });
+    } catch (error) {
+        console.log('Error creating user:', error);
+        res.status(500).json({ success: false, message: 'Failed to create user' });
     }
 };
 
