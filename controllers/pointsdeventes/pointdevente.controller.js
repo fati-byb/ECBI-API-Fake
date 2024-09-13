@@ -123,7 +123,7 @@ pointDeVenteController.updateRestaurant = async (req, res) => {
   
     try {
       // Find the restaurant by ID and update it
-      const restaurant = await Restaurant.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+      const restaurant = await PointDeVente.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
   
       if (!restaurant) {
         return res.json({ message: 'Restaurant not found' });
