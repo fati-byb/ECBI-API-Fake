@@ -9,13 +9,13 @@ userController.createUser = async (req, res, next) => {
     try {
         const { username, email, password, role } = req.body;
 
-        // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // // Hash the password before saving
+        // const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = new User({
             username,
             email,
-            password: hashedPassword,
+            password,
             role
         });
 
@@ -44,7 +44,7 @@ userController.updateUser = async (req, res, next) => {
 
         if (username) user.username = username;
         if (email) user.email = email;
-        if (password) user.password = await bcrypt.hash(password, 10); // Hash password if provided
+        // if (password) user.password = await bcrypt.hash(password, 10); // Hash password if provided
         if (role) user.role = role;
         if (enabled !== undefined) user.enabled = enabled; // Update enabled status
 
