@@ -59,7 +59,7 @@ userController.updateUser = async (req, res, next) => {
 
         if (username) user.username = username;
         if (email) user.email = email;
-        if (password) user.password = await bcrypt.hash(password, 10); // Hash password if provided
+        // if (password) user.password = await bcrypt.hash(password, 10); // Hash password if provided
         if (role) user.role = role;
         if (enabled !== undefined) user.enabled = enabled; // Update enabled status
 
