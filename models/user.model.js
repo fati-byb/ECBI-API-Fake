@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
+const plainPassword = '1234';
+const hashedPassword = '$2a$10$VRte4//g9y3usj2CaEMw7e/HM3di8oG/3ZHeGJQQZPw1bgXm5/w7m'; // Example from your log
 // Fonction pour hacher les mots de passe
-const hashPassword = async (password) => {
+const hashPass = async (password) => {
     return bcrypt.hash(password, 10);
 };
 
@@ -29,11 +30,19 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
-
+    pointOfSale: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+          default:'123456'
+        }
+    
+      ],
+    
     role: {
         type: String,
         enum: ['SUPER_ADMIN','SOUS_ADMIN','FINAL_USER',"RESTO_SUPER_ADMIN","RESTO_SOUS_ADMIN"],
-        default: 'ROLE_USER'
+        default: 'FINAL_USER'
     },
 
     resetPasswordToken: {
@@ -62,8 +71,9 @@ const UserSchema = mongoose.Schema({
 // Hash le mot de passe avant de sauvegarder l'utilisateur
 UserSchema.pre('save', async function (next) {
     try {
-        if (this.isModified('password')) {
-            this.password = await hashPassword(this.password);
+        if (this.isModified('password') || this.isNew) {
+            this.password = await hashPass(this.password);
+            console.log('Hashed password during save:', this.password); // Logging the hashed password
         }
         next();
     } catch (e) {
@@ -71,8 +81,12 @@ UserSchema.pre('save', async function (next) {
     }
 });
 
-// Compare les mots de passe
-UserSchema.methods.comparePassword = function (candidatePassword) {
+
+
+
+
+
+UserSchema.methods.comparePassword = function(candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 
