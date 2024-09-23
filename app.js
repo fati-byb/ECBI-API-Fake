@@ -32,6 +32,7 @@ if (!isProduction) {
 
 //-------------- Middlewares --------------//
 app.use(logger('dev'));
+app.use('/uploads', express.static('uploads'));
 
 const whitelist = process.env.CORS_ALLOW || "*";
 const corsOptions = {
