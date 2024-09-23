@@ -6,10 +6,12 @@ const userRoutes = require('./users.routes');
 const pointsDeVentesRoutes = require('./pointsdeventes.routes');
 const reservationRoutes = require('./reservation.routes');
 const User = require('../models/user.model');
+const categoryRoutes= require('./categories.routes')
+const productRoutes =require('./products.routes')
+const passport = require('passport');
 // const User = require('../models/user.model');
 
 // Public routes
-router.use('/users', userRoutes);
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/reservation', reservationRoutes)
@@ -43,9 +45,10 @@ router.get('/editEnable/:id', async (req, res) => {
 
 router.post('/auth', require('../controllers/user/auth.controller').login);
 router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
+router.use('/pointDeVente', pointsDeVentesRoutes);
 
-
-
+router.use('/category', categoryRoutes)
+router.use('/products', productRoutes)
 router.get('/editEnable/:id', async (req, res) => {
         try {
             const { id } = req.params;
@@ -71,8 +74,7 @@ router.get('/editEnable/:id', async (req, res) => {
             return res.status(500).json({ message: "Server error", error });
         }
     });
-// 
-// Authentication route
+ 
 
 router.all('*', (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
@@ -83,5 +85,6 @@ router.all('*', (req, res, next) => {
         next();
     })(req, res, next);
 });
+router.use('/users', userRoutes);
 
 module.exports = router;
