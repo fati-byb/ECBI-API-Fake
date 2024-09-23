@@ -4,6 +4,7 @@ const router = express.Router();
 // Import user and restaurant routes
 const userRoutes = require('./users.routes');
 const pointsDeVentesRoutes = require('./pointsdeventes.routes');
+const reservationRoutes = require('./reservation.routes');
 const User = require('../models/user.model');
 // const User = require('../models/user.model');
 
@@ -11,6 +12,7 @@ const User = require('../models/user.model');
 router.use('/users', userRoutes);
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
+router.use('/reservation', reservationRoutes)
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
