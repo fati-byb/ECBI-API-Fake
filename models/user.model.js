@@ -34,7 +34,7 @@ const UserSchema = mongoose.Schema({
         {
           type: mongoose.Types.ObjectId,
           ref: "User",
-          default:'123456'
+          default:''
         }
     
       ],
