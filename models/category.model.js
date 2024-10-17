@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Définir le schéma de la collection Category
 const categorySchema = new Schema({
   libele: {
     type: String,

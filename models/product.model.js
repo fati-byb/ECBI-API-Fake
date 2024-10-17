@@ -9,8 +9,8 @@ const productSchema = new mongoose.Schema({
     trim: true,
   },
   category: {
-    type: String,  // Can be an ID referencing a Category model if you have a separate Category collection
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
   },
   availability:{
     type:String,
@@ -21,10 +21,11 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 0,  // Ensure price is positive
   },
+ 
   image: {
-    type: String,  // URL or path to the image
-    required: false,
-  },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FileUpload', // image model
+},
 }, {
   timestamps: true,  // Adds createdAt and updatedAt fields
 });
