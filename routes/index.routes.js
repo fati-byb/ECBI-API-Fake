@@ -1,22 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
-// Import user and restaurant routes
 const userRoutes = require('./users.routes');
+const zoneRoutes= require('./zones.routes')
 const pointsDeVentesRoutes = require('./pointsdeventes.routes');
 const reservationRoutes = require('./reservation.routes');
-const User = require('../models/user.model');
 const categoryRoutes= require('./categories.routes')
 const productRoutes =require('./products.routes')
 const passport = require('passport');
 const WeeklyScheetRoutes = require('./shift.routes');
 // const User = require('../models/user.model');
+const tableRoutes= require('./tables.routes')
 
-// Public routes
+const User = require('../models/user.model');
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
-router.use('/reservation', reservationRoutes)
-router.use('/scheet', WeeklyScheetRoutes)
+// router.use('/reservation', reservationRoutes)
+// router.use('/scheet', WeeklyScheetRoutes)
+router.use('/users', userRoutes);
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
@@ -46,11 +47,6 @@ router.get('/editEnable/:id', async (req, res) => {
 // 
 
 router.post('/auth', require('../controllers/user/auth.controller').login);
-router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
-router.use('/pointDeVente', pointsDeVentesRoutes);
-
-router.use('/category', categoryRoutes)
-router.use('/products', productRoutes)
 router.get('/editEnable/:id', async (req, res) => {
         try {
             const { id } = req.params;
@@ -87,6 +83,14 @@ router.all('*', (req, res, next) => {
         next();
     })(req, res, next);
 });
-router.use('/users', userRoutes);
 
+router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
+router.use('/pointDeVente', pointsDeVentesRoutes);
+router.use('/category', categoryRoutes)
+router.use('/products', productRoutes)
+router.use('/reservation', reservationRoutes)
+router.use('/zones',zoneRoutes)
+router.use('/tables', tableRoutes)
+router.use('/reservation', reservationRoutes)
+router.use('/scheet', WeeklyScheetRoutes)
 module.exports = router;
