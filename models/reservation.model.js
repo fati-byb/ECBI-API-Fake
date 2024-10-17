@@ -23,12 +23,10 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-
-  phone:{
-    type:String, 
+  phone: {
+    type: String, 
     required: false
-},
- 
+  },
   email: {
     type: String,
     lowercase: true,
@@ -36,12 +34,18 @@ const ReservationSchema = new mongoose.Schema({
     required: [false, "can't be blank"],
     match: [/\S+@\S+\.\S+/, 'is invalid'],
     index: true
-},
-
+  },
+  shiftId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'WeeklyScheet.shifts', // Référence au shift spécifique dans WeeklyScheet
+    required: true // Assurez-vous que ce champ est requis
+  }
 }, {
   timestamps: true,
 });
 
-const Reservation = mongoose.model('reservation', ReservationSchema);
+const Reservation = mongoose.model('Reservation', ReservationSchema);
 
 module.exports = Reservation;
+
+
