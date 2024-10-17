@@ -9,12 +9,14 @@ const User = require('../models/user.model');
 const categoryRoutes= require('./categories.routes')
 const productRoutes =require('./products.routes')
 const passport = require('passport');
+const WeeklyScheetRoutes = require('./shift.routes');
 // const User = require('../models/user.model');
 
 // Public routes
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/reservation', reservationRoutes)
+router.use('/scheet', WeeklyScheetRoutes)
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
