@@ -4,13 +4,15 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const passport = require('passport');
 const cors = require('cors');
-
+ const path = require('path');
 const apiRouter = require('./routes/index.routes');
 require('./config/passport')(passport);
 
 const app = express();
 
 let isProduction = process.env.NODE_ENV === "production";
+app.use('/media/images', express.static(path.join('./media/images')));
+ 
 
 //-------------- DB Config --------------//
 mongoose.connect(process.env.MONGODB_URI, {
@@ -32,8 +34,7 @@ if (!isProduction) {
 
 //-------------- Middlewares --------------//
 app.use(logger('dev'));
-app.use('/uploads', express.static('uploads'));
-
+ 
 const whitelist = process.env.CORS_ALLOW || "*";
 const corsOptions = {
     origin: function (origin, callback) {
