@@ -6,9 +6,8 @@ const authController = {};
 authController.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-
         const user = await User.findOne({ email });
-       
+   
     
        
         // user.password= password
@@ -17,6 +16,7 @@ authController.login = async (req, res, next) => {
     
          
          if (!user || !(await user.comparePassword(password))) {
+            console.log('hashed pass', comparePassword(password))
             const error = new Error('Invalid email or password');
            
             return next(error);

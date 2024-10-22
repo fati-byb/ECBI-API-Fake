@@ -52,7 +52,7 @@ productController.getProducts = async (req, res) => {
   try {
     console.log('Fetching all products');
     
-     const products = await Product.find() .populate([
+     const products = await Product.find().populate([
       { path: 'image' },
       { path: 'category', select: 'libele' }
     ]); 

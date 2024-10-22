@@ -23,6 +23,10 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  table:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:"Table"
+  },
   phone: {
     type: String, 
     required: false
@@ -35,11 +39,10 @@ const ReservationSchema = new mongoose.Schema({
     match: [/\S+@\S+\.\S+/, 'is invalid'],
     index: true
   },
-  shiftId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'WeeklyScheet.shifts', // Référence au shift spécifique dans WeeklyScheet
-    required: true // Assurez-vous que ce champ est requis
-  }
+  shiftId:
+     { type: mongoose.Schema.Types.ObjectId } // Make sure this is correct
+  
+
 }, {
   timestamps: true,
 });
