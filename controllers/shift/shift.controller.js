@@ -70,8 +70,8 @@ WeeklyScheetController.updateWeeklyScheet = async (req, res) => {
             existingShift.name = newShift.name || existingShift.name;
             existingShift.openingTime = newShift.openingTime || existingShift.openingTime;
             existingShift.closingTime = newShift.closingTime || existingShift.closingTime;
-            existingShift.reservationDuration = newShift.reservationDuration || existingShift.reservationDuration;
-            existingShift.maxReservations = newShift.maxReservations || existingShift.maxReservations;
+            existingShift.reservationInterval = newShift.reservationInterval || existingShift.reservationInterval;
+            existingShift.maxPeoplePerInterval = newShift.maxPeoplePerInterval || existingShift.maxPeoplePerInterval;
           } else {
             // Ajouter un nouveau shift si l'ID n'existe pas
             weeklyScheet.shifts.push(newShift);

@@ -15,10 +15,10 @@ const tableRoutes= require('./tables.routes')
 const User = require('../models/user.model');
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
-// router.use('/reservation', reservationRoutes)
-// router.use('/scheet', WeeklyScheetRoutes)
-router.use('/users', userRoutes);
 
+router.use('/users', userRoutes);
+router.use('/reservation', reservationRoutes)
+router.use('/scheet', WeeklyScheetRoutes)
 router.get('/editEnable/:id', async (req, res) => {
         try {
             const { id } = req.params;
@@ -91,6 +91,5 @@ router.use('/products', productRoutes)
 router.use('/reservation', reservationRoutes)
 router.use('/zones',zoneRoutes)
 router.use('/tables', tableRoutes)
-router.use('/reservation', reservationRoutes)
-router.use('/scheet', WeeklyScheetRoutes)
+
 module.exports = router;
