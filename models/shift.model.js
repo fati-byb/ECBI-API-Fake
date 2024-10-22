@@ -4,7 +4,7 @@ const WeeklyScheetSchema = new mongoose.Schema({
   dayname: {
     type: String,
     required: true,
-    enum: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], // Limite les valeurs possibles
+    enum: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], 
   },
   isopen: {
     type: Boolean,
@@ -24,18 +24,18 @@ const WeeklyScheetSchema = new mongoose.Schema({
         type: String,
         required: true
       },
-      reservationDuration: {
-        type: Number,  // Durée en minutes
-        required: true,  // Ex: 60 pour une heure, 30 pour une demi-heure
+      reservationInterval: {
+        type: Number,  // En minutes : 30 pour 30 minutes, 60 pour 1 heure, etc.
+        required: true
       },
-      maxReservations: {
-        type: Number, // Nombre maximum de réservations autorisées
-        required: true,  // Ce champ est requis, exemple : 10
-        default: 7  // Valeur par défaut si aucune n'est spécifiée
+      maxPeoplePerInterval: {
+        type: Number,  // Nombre max de personnes autorisées par intervalle de réservation
+        required: true,
       }
     }
   ]
 });
+
 
 const WeeklyScheet = mongoose.model('WeeklyScheet', WeeklyScheetSchema);
 

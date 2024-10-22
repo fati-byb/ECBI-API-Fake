@@ -35,10 +35,15 @@ const ReservationSchema = new mongoose.Schema({
     match: [/\S+@\S+\.\S+/, 'is invalid'],
     index: true
   },
+ 
   shiftId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'WeeklyScheet.shifts', // Référence au shift spécifique dans WeeklyScheet
     required: true // Assurez-vous que ce champ est requis
+  },
+  peopleCount: {  // Nombre de personnes dans la réservation
+    type: Number,
+    required: true
   }
 }, {
   timestamps: true,
