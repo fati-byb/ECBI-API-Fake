@@ -43,6 +43,12 @@ const ReservationSchema = new mongoose.Schema({
      { type: mongoose.Schema.Types.ObjectId } // Make sure this is correct
   
 
+ 
+ ,
+  peopleCount: {  // Nombre de personnes dans la réservation
+    type: Number,
+    required: true
+  }
 }, {
   timestamps: true,
 });

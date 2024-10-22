@@ -5,7 +5,7 @@ const WeeklyScheetSchema = new mongoose.Schema({
   dayname: {
     type: String,
     required: true,
-    enum: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], // Days of the week
+    enum: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], 
   },
   isopen: {
     type: Boolean,
@@ -13,15 +13,33 @@ const WeeklyScheetSchema = new mongoose.Schema({
   },
   shifts: [
     {
-    maxReservations: Number,
-    _id: mongoose.Schema.Types.ObjectId, // Shift ID
-    name: String,
-    openingTime: String,
-    closingTime: String,
-    reservationDuration: Number
-  }
-]
+      _id:{
+        type:mongoose.Schema.Types.ObjectId
+      },
+      name: {
+        type: String,
+        required: true
+      },
+      openingTime: {
+        type: String,
+        required: true
+      },
+      closingTime: {
+        type: String,
+        required: true
+      },
+      reservationInterval: {
+        type: Number,  // En minutes : 30 pour 30 minutes, 60 pour 1 heure, etc.
+        required: true
+      },
+      maxPeoplePerInterval: {
+        type: Number,  // Nombre max de personnes autorisées par intervalle de réservation
+        required: true,
+      }
+    }
+  ]
 });
+
 
 const WeeklyScheet = mongoose.model('WeeklyScheet', WeeklyScheetSchema);
 module.exports = WeeklyScheet;
