@@ -58,25 +58,34 @@ tableController.getTableById = async (req, res) => {
 };
 
 // Update a table by ID
+// Update a table by ID
 tableController.updateTable = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nom, places, min, zone } = req.body;
+    const { nom, places, min, zone, status } = req.body;
+
+    // Initialize an object to hold the updated fields
+    const updateFields = {};
 
     // Check if the zone exists (if it's being updated)
     if (zone) {
-      const existingZone = await Zone.findOne({"libele":zone});
+      const existingZone = await Zone.findOne({ "libele": zone });
       if (!existingZone) {
         return res.status(404).json({ message: 'Zone not found' });
       }
-      existingZoneId = existingZone._id; // Set the ID if the zone exists
-
+      updateFields.zone = existingZone._id; // Use the _id of the zone if it exists
     }
 
+    // Only add fields to updateFields if they are provided
+    if (nom) updateFields.nom = nom;
+    if (places) updateFields.places = places;
+    if (min) updateFields.min = min;
+    if (status) updateFields.status = status;
+
     // Update the table fields
-     const updatedTable = await Table.findByIdAndUpdate(
+    const updatedTable = await Table.findByIdAndUpdate(
       id,
-      { nom, places, min, zone: existingZoneId },
+      updateFields,
       { new: true, runValidators: true } // Return the updated document
     );
 
@@ -89,6 +98,7 @@ tableController.updateTable = async (req, res) => {
     return res.status(500).json({ message: 'Error updating table', error: error.message });
   }
 };
+
 
 // Delete a table by ID
 tableController.deleteTable = async (req, res) => {

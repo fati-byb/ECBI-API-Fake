@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const WeeklyScheetSchema = new mongoose.Schema({
   dayname: {
     type: String,
@@ -12,6 +13,9 @@ const WeeklyScheetSchema = new mongoose.Schema({
   },
   shifts: [
     {
+      _id:{
+        type:mongoose.Schema.Types.ObjectId
+      },
       name: {
         type: String,
         required: true
@@ -38,6 +42,4 @@ const WeeklyScheetSchema = new mongoose.Schema({
 
 
 const WeeklyScheet = mongoose.model('WeeklyScheet', WeeklyScheetSchema);
-
 module.exports = WeeklyScheet;
-
