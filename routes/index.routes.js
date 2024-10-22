@@ -8,16 +8,17 @@ const reservationRoutes = require('./reservation.routes');
 const categoryRoutes= require('./categories.routes')
 const productRoutes =require('./products.routes')
 const passport = require('passport');
-const tableRoutes= require('./tables.routes')
 const WeeklyScheetRoutes = require('./shift.routes');
 // const User = require('../models/user.model');
+const tableRoutes= require('./tables.routes')
 
 const User = require('../models/user.model');
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
+
+router.use('/users', userRoutes);
 router.use('/reservation', reservationRoutes)
 router.use('/scheet', WeeklyScheetRoutes)
-
 router.get('/editEnable/:id', async (req, res) => {
         try {
             const { id } = req.params;
@@ -82,7 +83,7 @@ router.all('*', (req, res, next) => {
         next();
     })(req, res, next);
 });
-router.use('/users', userRoutes);
+
 router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
 router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/category', categoryRoutes)
@@ -90,4 +91,5 @@ router.use('/products', productRoutes)
 router.use('/reservation', reservationRoutes)
 router.use('/zones',zoneRoutes)
 router.use('/tables', tableRoutes)
+
 module.exports = router;
