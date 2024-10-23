@@ -87,6 +87,45 @@ WeeklyScheetController.updateWeeklyScheet = async (req, res) => {
     }
   };
 
+  // Fonction pour ajouter un shift à une feuille horaire existante
+WeeklyScheetController.addShift = async (req, res) => {
+  const { scheetId } = req.params; // ID de la feuille horaire
+  const { name, openingTime, closingTime, reservationInterval, maxPeoplePerInterval } = req.body; // Détails du nouveau shift
+
+  // Validation des entrées
+  if (!name || !openingTime || !closingTime || !reservationInterval || !maxPeoplePerInterval) {
+      return res.json({ message: 'Tous les champs sont requis.' });
+  }
+
+  try {
+      // Chercher la feuille horaire par ID
+      const scheet = await WeeklyScheet.findById(scheetId);
+      if (!scheet) {
+          return res.json({ message: "Feuille horaire non trouvée" });
+      }
+
+      // Création du nouveau shift
+      const newShift = {
+          name,
+          openingTime,
+          closingTime,
+          reservationInterval,
+          maxPeoplePerInterval
+      };
+
+      // Ajouter le nouveau shift à la liste des shifts
+      scheet.shifts.push(newShift);
+
+      // Sauvegarder les modifications
+      await scheet.save();
+
+      return res.status(201).json({ message: "Shift ajouté avec succès", scheet });
+  } catch (error) {
+      return res.json({ message: "Erreur du serveur", error: error.message });
+  }
+};
+
+
   // Fonction pour supprimer un shift par son ID
   WeeklyScheetController.deleteShift = async (req, res) => {
     const { scheetId, shiftId } = req.params;
