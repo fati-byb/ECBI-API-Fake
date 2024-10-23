@@ -19,6 +19,9 @@ router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/users', userRoutes);
 router.use('/reservation', reservationRoutes)
 router.use('/scheet', WeeklyScheetRoutes)
+router.use('/zones',zoneRoutes)
+router.use('/tables', tableRoutes)
+
 router.get('/editEnable/:id', async (req, res) => {
         try {
             const { id } = req.params;
@@ -88,8 +91,5 @@ router.get('/users/:id/activate',require('../controllers/user/user.controller').
 router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/category', categoryRoutes)
 router.use('/products', productRoutes)
-router.use('/reservation', reservationRoutes)
-router.use('/zones',zoneRoutes)
-router.use('/tables', tableRoutes)
 
 module.exports = router;
