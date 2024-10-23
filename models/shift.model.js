@@ -13,13 +13,10 @@ const WeeklyScheetSchema = new mongoose.Schema({
   },
   shifts: [
     {
-      _id:{
-        type:mongoose.Schema.Types.ObjectId
-      },
-      name: {
-        type: String,
-        required: true
-      },
+       name: {
+          type: String,
+          required: true
+        },
       openingTime: {
         type: String,
         required: true
