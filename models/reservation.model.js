@@ -23,12 +23,12 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  table:{
+  table: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:"Table"
+    ref: "Table"
   },
   phone: {
-    type: String, 
+    type: String,
     required: false
   },
   email: {
@@ -40,14 +40,21 @@ const ReservationSchema = new mongoose.Schema({
     index: true
   },
   shiftId:
-     { type: mongoose.Schema.Types.ObjectId } // Make sure this is correct
-  
+    { type: mongoose.Schema.Types.ObjectId } // Make sure this is correct
 
- 
- ,
+
+
+  ,
   peopleCount: {  // Nombre de personnes dans la réservation
     type: Number,
     required: true
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: ["enregistré", "Annulé", "en attente", "Arrivé", "Départ", "No show"],
+    default: "en attente"
+    // Days of the week
   }
 }, {
   timestamps: true,

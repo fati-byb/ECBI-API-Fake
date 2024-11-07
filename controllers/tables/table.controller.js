@@ -57,8 +57,28 @@ tableController.getTableById = async (req, res) => {
   }
 };
 
-// Update a table by ID
-// Update a table by ID
+tableController.updateDisplayTable = async(req, res)=>{
+  try {
+    const { id } = req.params;
+
+    // Find the table by its ID
+    const table = await Table.findById(id);
+
+    if (!table) {
+        return res.status(404).json({ message: 'Table not found' });
+    }
+
+    // Toggle the display field
+    table.display = !table.display;
+
+    // Save the updated table
+    await table.save();
+
+    return res.status(200).json({ message: 'Display status updated successfully', table });
+} catch (error) {
+    return res.status(500).json({ message: 'Error toggling display', error: error.message });
+}
+}
 tableController.updateTable = async (req, res) => {
    console.log('piwehf', req.body)
   try {
