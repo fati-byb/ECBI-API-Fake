@@ -11,6 +11,7 @@ const passport = require('passport');
 const WeeklyScheetRoutes = require('./shift.routes');
 // const User = require('../models/user.model');
 const tableRoutes= require('./tables.routes')
+const settingsRoutes=require('./settings.routes')
 
 const User = require('../models/user.model');
 
@@ -21,6 +22,8 @@ router.use('/reservation', reservationRoutes)
 router.use('/scheet', WeeklyScheetRoutes)
 router.use('/zones',zoneRoutes)
 router.use('/tables', tableRoutes)
+router.use('/setting',settingsRoutes)
+
 
 router.get('/editEnable/:id', async (req, res) => {
         try {
