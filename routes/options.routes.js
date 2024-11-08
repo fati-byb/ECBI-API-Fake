@@ -5,7 +5,9 @@ const optionController = require('../controllers/options/option.controller');
 
 // Route to create a new option
 router.post('/addOptions', optionController.createOption);
-router.get('/getOptions', optionController.getProductsOptions)
+router.get('/getOptions', optionController.getProductsOptions);
+router.put('/update/:optionId', optionController.updateOption); // Update route
+router.delete('/delete/:optionId', optionController.deleteOption); // De
 // Add routes for updating, deleting, and getting options as needed
 
 module.exports = router;
