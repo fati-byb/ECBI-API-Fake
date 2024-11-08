@@ -1,7 +1,8 @@
 const Reservation = require("../../models/reservation.model");
 const WeeklyScheet = require('../../models/shift.model');
+const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
-const Shift = require('../../models/shift.model')
+
 const reservationController = {};
 
 // Function to get the day of the week
@@ -69,18 +70,29 @@ reservationController.getReservations = async (req, res) => {
 
 
 
-
-
-
-
+//CHANGEMENT
 
 reservationController.createReservation = async (req, res) => {
   try {
     const { firstname, lastname, date, time, phone, email, shiftName, peopleCount } = req.body;
 
+     // Vérifiez que peopleCount est supérieur à 0
+     if (peopleCount <= 0) {
+      return res.status(400).json({ message: "Invalid reservation: people count must be greater than 0." });
+    }
+
+
     const selectedDay = getDayOfWeek(date);
 
-    // Find the WeeklyScheet with the corresponding day and populate the shifts array
+    // Récupérer les paramètres globaux
+    const globalSettings = await GlobalSettings.find();
+    if (!globalSettings) {
+      return res.status(500).json({ message: "Global settings not found." });
+    }
+    const { reservationInterval, maxPeoplePerInterval } = globalSettings;
+    console.log("Retrieved Reservation Interval:", reservationInterval);
+
+    // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
     if (!scheet) {
       return res.status(404).json({ message: "No schedule found for the selected day." });
@@ -99,19 +111,15 @@ reservationController.createReservation = async (req, res) => {
 
     // Find the correct shift inside the WeeklyScheet shifts array
     const shift = scheet.shifts.find(s => s.name === shiftName);
-
     if (!shift) {
       return res.status(404).json({ message: "No shift found with the provided name." });
     }
 
-    const reservationInterval = parseInt(shift.reservationInterval); // e.g., 60 minutes
+    // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
     const openingTime = moment(shift.openingTime, 'HH:mm');
-    const closingTime = moment(shift.closingTime, 'HH:mm');
-
+    const closingTime = moment(shift.closingTime, 'HH:mm');   
     const requestedTime = moment(time, 'HH:mm');
-    const currentTime = moment();
 
-    // Ensure the reservation time is within the shift time and is not in the past
     if (requestedTime.isBefore(openingTime) || requestedTime.isAfter(closingTime)) {
       return res.status(400).json({ message: "Invalid reservation time." });
     }
@@ -122,6 +130,8 @@ reservationController.createReservation = async (req, res) => {
     }
 
     const intervalStart = openingTime.clone().add(Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval, 'minutes');
+    // Calculer le créneau correspondant pour `requestedTime`
+    
     const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
 
     // Calculate total people reserved within this interval
@@ -143,10 +153,12 @@ reservationController.createReservation = async (req, res) => {
 
     const totalPeopleReserved = peopleAlreadyReserved.length > 0 ? peopleAlreadyReserved[0].totalPeople : 0;
 
-    if (totalPeopleReserved + peopleCount > shift.maxPeoplePerInterval) {
-      return res.status(400).json({ message: "Cannot create reservation: maximum people for this interval reached." });
+    // Vérifier si le nombre total de personnes dépasse `maxPeoplePerInterval`
+    if (totalPeopleReserved + peopleCount > maxPeoplePerInterval) {
+      return res.status(400).json({ message: `Cannot create reservation: maximum people for this interval reached.` });
     }
 
+    // Créer la nouvelle réservation
     const newReservation = new Reservation({
       firstname,
       lastname,
