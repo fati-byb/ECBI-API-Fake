@@ -11,12 +11,17 @@ const passport = require('passport');
 const WeeklyScheetRoutes = require('./shift.routes');
 // const User = require('../models/user.model');
 const tableRoutes= require('./tables.routes')
+const optionRoutes = require('./options.routes');
 const settingsRoutes=require('./settings.routes')
 
 const User = require('../models/user.model');
+router.use('/category', categoryRoutes)
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
-
+router.use('/options', optionRoutes)
+router.use('/products', productRoutes)
+router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
+router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/users', userRoutes);
 router.use('/reservation', reservationRoutes)
 router.use('/scheet', WeeklyScheetRoutes)
@@ -90,9 +95,5 @@ router.all('*', (req, res, next) => {
     })(req, res, next);
 });
 
-router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
-router.use('/pointDeVente', pointsDeVentesRoutes);
-router.use('/category', categoryRoutes)
-router.use('/products', productRoutes)
 
 module.exports = router;

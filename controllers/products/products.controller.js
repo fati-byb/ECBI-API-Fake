@@ -1,46 +1,81 @@
 const Product = require('../../models/product.model');
 const FileUpload = require('../../models/media.model'); // Import your mongoose model
-const Category = require('../../models/category.model')
+const Category = require('../../models/category.model');
+const Option = require('../../models/option.models');
+
 const productController = {};
 
+
+
+
 productController.createProduct = async (req, res) => {
-  console.log('we re here')
   try {
-    const { libele, category, price } = req.body;
-    console.log('req', req.body)
+    const { libele, category, price, options } = req.body;
+
     if (!req.file) {
       return res.status(400).json({ message: 'No image file uploaded' });
     }
 
-    const categoryDoc = await Category.findOne({ libele: category }); 
+    // Validate the category
+    const categoryDoc = await Category.findOne({ libele: category });
     if (!categoryDoc) {
       return res.status(400).json({ message: 'Invalid category' });
     }
 
+    // Upload the image file
     const { originalname, encoding, mimetype, destination, filename, path, size, fieldname } = req.file;
     const newImage = new FileUpload({
       fieldName: fieldname,
       originalName: originalname,
-      encoding: encoding,
+      encoding,
       mimeType: mimetype,
-      destination: destination,
+      destination,
       fileName: filename,
-      path: path,
-      size: size,
+      path,
+      size,
     });
     const savedImage = await newImage.save();
 
+    // Create the product without options initially
     const product = new Product({
       libele,
       price,
       category: categoryDoc._id,
       image: savedImage._id,
     });
-
     await product.save();
-    return res.status(201).json(product);
+
+    // If options are provided, save each option with a reference to the product
+  console.log('options', options)  
+  console.log('Type of options:', typeof options);
+  parsedOptions = JSON.parse(options);
+
+    if (options && Array.isArray(parsedOptions)) {
+
+      const optionDocs = await Promise.all(
+
+        parsedOptions.map(async (option) => {
+          const newOption = new Option({
+            name: option.name,
+            elements: option.elements,
+            product: product._id, // Link each option to the product
+          });
+          const savedOption = await newOption.save();
+          return savedOption._id; // Return the ID of each saved option
+        })
+      );
+
+      // Update the product with the option IDs
+      product.options = optionDocs;
+      await product.save(); // Save the updated product with options
+    }
+
+    return res.status(201).json({
+      message: 'Product and options created successfully',
+      product,
+    });
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error('Error creating product and options:', error);
     return res.status(500).json({ message: error.message });
   }
 };
@@ -54,7 +89,8 @@ productController.getProducts = async (req, res) => {
     
      const products = await Product.find().populate([
       { path: 'image' },
-      { path: 'category', select: 'libele' }
+      { path: 'category', select: 'libele' },
+      {path:'options'}
     ]); 
     //  ([{path:"image"},{path:"category",populate:[{path:"imageCategory"}]}])
 
