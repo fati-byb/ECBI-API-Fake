@@ -2,7 +2,7 @@ const Reservation = require("../../models/reservation.model");
 const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
-const Shift= require('../../models/shift.model')
+
 
 const reservationController = {};
 
@@ -13,6 +13,32 @@ const getDayOfWeek = (dateString) => {
   return days[date.getDay()];
 };
 
+// reservationController.getReservations = async (req, res) => {
+//   try {
+//     const reservations = await Reservation.find().populate("table");
+
+//     // Populate shift details from WeeklyScheet
+//     const populatedReservations = await Promise.all(reservations.map(async reservation => {
+//       const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
+//       const shift = scheet.shifts.id(reservation.shiftId); // Get the shift details
+
+//       return {
+//         ...reservation.toObject(),
+//         shift: shift ? {
+//         _id:shift._id,
+//           name: shift.name,
+//           openingTime: shift.openingTime,
+//           closingTime: shift.closingTime
+//         } : null
+//       };
+//     }));
+
+//     res.json(populatedReservations);
+//   } catch (err) {
+//     res.json({ error: 'Failed to fetch reservations', details: err.message });
+//   }
+// };
+
 reservationController.getReservations = async (req, res) => {
   try {
     const reservations = await Reservation.find().populate("table");
@@ -20,12 +46,12 @@ reservationController.getReservations = async (req, res) => {
     // Populate shift details from WeeklyScheet
     const populatedReservations = await Promise.all(reservations.map(async reservation => {
       const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
-      const shift = scheet.shifts.id(reservation.shiftId); // Get the shift details
+      const shift = scheet?.shifts.id(reservation.shiftId); // Get the shift details
 
       return {
         ...reservation.toObject(),
         shift: shift ? {
-        _id:shift._id,
+          _id: shift._id,
           name: shift.name,
           openingTime: shift.openingTime,
           closingTime: shift.closingTime
@@ -33,11 +59,14 @@ reservationController.getReservations = async (req, res) => {
       };
     }));
 
-    res.json(populatedReservations);
-  } catch (err) {
-    res.json({ error: 'Failed to fetch reservations', details: err.message });
+    // Assurez-vous que le type de contenu est bien défini pour JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(populatedReservations);
+  } catch (err) { 
+    res.status(500).json({ error: 'Failed to fetch reservations', details: err.message });
   }
 };
+
 
 
 //CHANGEMENT

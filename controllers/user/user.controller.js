@@ -39,6 +39,22 @@ userController.createUser = async (req, res, next) => {
     }
 };
 
+
+
+userController.getUsers = async (req, res, next) => {
+    try {
+        // Récupère tous les utilisateurs de la base de données
+        const users = await User.find().populate('pointOfSale'); // populate 'pointOfSale' pour inclure les détails du point de vente
+
+        // Renvoie les utilisateurs sous forme de JSON
+        res.json({ success: true, data: users });
+    } catch (error) {
+        console.error('Erreur lors de la récupération des utilisateurs:', error);
+        res.json({ success: false, message: 'Impossible de récupérer les utilisateurs' });
+    }
+};
+
+
 // Mise à jour d'un utilisateur
 userController.updateUser = async (req, res, next) => {
     try {
