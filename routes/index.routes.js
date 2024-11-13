@@ -97,12 +97,9 @@ router.all('*', (req, res, next) => {
     })(req, res, next);
 });
 
-<<<<<<< HEAD
 router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
 router.use('/pointDeVente', pointsDeVentesRoutes);
 // router.use('/category', categoryRoutes)
 // router.use('/products', productRoutes)
-=======
->>>>>>> 9c9fb36b5cd8904bd67a6606eb7c0b2d3fe35f99
 
 module.exports = router;
