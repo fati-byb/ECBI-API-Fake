@@ -11,14 +11,8 @@
     required: true,
     min: 1,  // Minimum value should be 1 to ensure valid input
   },
-  status:{
-     type: String,
-  required: true,
-  enum: ["booked","available"],
-  default:"available"
-  // Days of the week
-  }
- ,
+  
+ 
 
   min: {
     type: Number,

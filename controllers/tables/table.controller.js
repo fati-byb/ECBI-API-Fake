@@ -57,19 +57,40 @@ tableController.getTableById = async (req, res) => {
   }
 };
 
-// Update a table by ID
-// Update a table by ID
+tableController.updateDisplayTable = async(req, res)=>{
+  try {
+    const { id } = req.params;
+
+    // Find the table by its ID
+    const table = await Table.findById(id);
+
+    if (!table) {
+        return res.status(404).json({ message: 'Table not found' });
+    }
+
+    // Toggle the display field
+    table.display = !table.display;
+
+    // Save the updated table
+    await table.save();
+
+    return res.status(200).json({ message: 'Display status updated successfully', table });
+} catch (error) {
+    return res.status(500).json({ message: 'Error toggling display', error: error.message });
+}
+}
 tableController.updateTable = async (req, res) => {
+   console.log('piwehf', req.body)
   try {
     const { id } = req.params;
     const { nom, places, min, zone, status } = req.body;
-
+   
     // Initialize an object to hold the updated fields
     const updateFields = {};
 
     // Check if the zone exists (if it's being updated)
     if (zone) {
-      const existingZone = await Zone.findOne({ "libele": zone });
+      const existingZone = await Zone.findOne({ "libele": zone.libele });
       if (!existingZone) {
         return res.status(404).json({ message: 'Zone not found' });
       }
@@ -78,6 +99,7 @@ tableController.updateTable = async (req, res) => {
 
     // Only add fields to updateFields if they are provided
     if (nom) updateFields.nom = nom;
+
     if (places) updateFields.places = places;
     if (min) updateFields.min = min;
     if (status) updateFields.status = status;
@@ -90,7 +112,7 @@ tableController.updateTable = async (req, res) => {
     );
 
     if (!updatedTable) {
-      return res.status(404).json({ message: 'Table not found' });
+      return res.json({ message: 'Table not found' });
     }
 
     return res.status(200).json(updatedTable);
