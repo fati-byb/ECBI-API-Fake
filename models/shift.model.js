@@ -1,8 +1,5 @@
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 9c9fb36b5cd8904bd67a6606eb7c0b2d3fe35f99
 const mongoose = require('mongoose');
 
 const WeeklyScheetSchema = new mongoose.Schema({
