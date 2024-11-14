@@ -31,17 +31,19 @@ const mongoose = require('mongoose');
 const User = require('../models/user.model'); // Assurez-vous que le chemin est correct
 
 module.exports = (passport) => {
+    // Vérification des variables d'environnement
+    if (!process.env.JWT_SECRET) {
+        console.error("JWT_SECRET n'est pas défini dans les variables d'environnement");
+        throw new Error("JWT_SECRET is not set in environment variables");
+    } else {
+        console.log("JWT_SECRET est défini:", process.env.JWT_SECRET); // Affiche la valeur de JWT_SECRET (assurez-vous de ne pas la loguer dans un environnement de production pour des raisons de sécurité)
+    }
+
     // Options pour le JWT
     const opts = {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         secretOrKey: process.env.JWT_SECRET,
     };
-
-    // Vérification des variables d'environnement
-    if (!process.env.JWT_SECRET) {
-        console.error("JWT_SECRET n'est pas défini dans les variables d'environnement");
-        throw new Error("JWT_SECRET is not set in environment variables");
-    }
 
     // Définition de la stratégie JWT
     passport.use(new JwtStrategy(opts, async (jwtPayload, done) => {
@@ -72,4 +74,3 @@ module.exports = (passport) => {
         }
     }));
 };
-
