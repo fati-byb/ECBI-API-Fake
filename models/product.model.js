@@ -22,7 +22,9 @@ const productSchema = new mongoose.Schema({
   },
   options: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Option', // Reference to Option model
+    ref: 'Option', 
+    
+    // Reference to Option model
   }],
 }, {
   timestamps: true,

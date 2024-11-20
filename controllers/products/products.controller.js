@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const Product = require('../../models/product.model');
 const FileUpload = require('../../models/media.model'); // Import your mongoose model
 const Category = require('../../models/category.model');
@@ -5,6 +7,46 @@ const Option = require('../../models/option.models');
 
 const productController = {};
 
+
+
+
+
+
+
+
+productController.getProducts = async (req, res) => {
+  try {
+    console.log('Fetching all products');
+    
+     const products = await Product.find().populate([
+      { path: 'image' },
+      { path: 'category', select: 'libele' },
+      {path:'options'}
+    ]); 
+    //  ([{path:"image"},{path:"category",populate:[{path:"imageCategory"}]}])
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    ;
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+};
+
+
+ productController.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.json({ message: 'Product not found' });
+    }
+    res.status(200).json(product);
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    res.status(500).json({ error: 'Failed to fetch product by ID' });
+  }
+};
 
 
 
@@ -82,70 +124,68 @@ productController.createProduct = async (req, res) => {
 
 
 
-
-productController.getProducts = async (req, res) => {
-  try {
-    console.log('Fetching all products');
-    
-     const products = await Product.find().populate([
-      { path: 'image' },
-      { path: 'category', select: 'libele' },
-      {path:'options'}
-    ]); 
-    //  ([{path:"image"},{path:"category",populate:[{path:"imageCategory"}]}])
-
-    res.status(200).json(products);
-  } catch (error) {
-    console.error('Error fetching products:', error)
-    ;
-    res.status(500).json({ error: 'Failed to fetch products' });
-  }
-};
-
-
- productController.getProductById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.json({ message: 'Product not found' });
-    }
-    res.status(200).json(product);
-  } catch (error) {
-    console.error('Error fetching product by ID:', error);
-    res.status(500).json({ error: 'Failed to fetch product by ID' });
-  }
-};
-
-
-
-
-
 productController.updateProduct = async (req, res) => {
+  console.log('req', req.file)
   try {
     const { id } = req.params;
+    const { libele, category, price } = req.body;
+
     console.log('Updating product with ID:', id);
 
-    // Get the image path if a new image is uploaded
-    const imagePath = req.file ? req.file.path.replace(/\\/g, '/').replace(/^media\//, '') : null;
-
-    // Build the update data
-    const updateData = {
-      ...req.body,
-      ...(imagePath && { image: imagePath }) // Add image to update if available
-    };
-
-    const product = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
-
+    // Find the existing product
+    const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.status(200).json({ success: true, data: product });
+
+    // Handle new image upload if provided
+    if (req.file) {
+      const { originalname, encoding, mimetype, destination, filename, path, size, fieldname } = req.file;
+
+      const newImage = new FileUpload({
+        fieldName: fieldname,
+        originalName: originalname,
+        encoding,
+        mimeType: mimetype,
+        destination,
+        fileName: filename,
+        path,
+        size,
+      });
+      const savedImage = await newImage.save();
+
+      // Set the new image ID in update data
+      product.image = savedImage._id;
+    }
+
+    // Update other fields
+    product.libele = libele || product.libele;
+    product.price = price || product.price;
+
+    // Update category if provided
+    if (category) {
+      const categoryDoc = await Category.findOne({ _id: category });
+      if (!categoryDoc) {
+        return res.status(400).json({ message: 'Invalid category' });
+      }
+      product.category = categoryDoc._id;
+    }
+
+   
+
+    // Save the updated product
+    await product.save();
+
+    res.status(200).json({
+      message: 'Product updated successfully',
+      data: product,
+    });
   } catch (error) {
     console.error('Error updating product:', error);
-    res.json({ error: 'Failed to update product' });
+    res.status(500).json({ error: 'Failed to update product' });
   }
 };
+
 
 // Delete a product by ID
 productController.deleteProduct = async (req, res) => {
