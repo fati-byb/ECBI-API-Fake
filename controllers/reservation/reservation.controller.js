@@ -2,9 +2,12 @@ const Reservation = require("../../models/reservation.model");
 const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
+const dayjs = require('dayjs');
 
 const reservationController = {};
-
+ // Get current time
+ const today = dayjs().startOf('day'); // Start of today for comparison
+ const currentTime = dayjs();
 // Function to get the day of the week
 const getDayOfWeek = (dateString) => {
   const date = new Date(dateString);
@@ -85,12 +88,13 @@ reservationController.createReservation = async (req, res) => {
     const selectedDay = getDayOfWeek(date);
 
     // Récupérer les paramètres globaux
-    const globalSettings = await GlobalSettings.find();
+    const globalSettings = await GlobalSettings.findOne();
     if (!globalSettings) {
       return res.status(500).json({ message: "Global settings not found." });
     }
     const { reservationInterval, maxPeoplePerInterval } = globalSettings;
     console.log("Retrieved Reservation Interval:", reservationInterval);
+    console.log("Retrieved Reservation Interval:", maxPeoplePerInterval);
 
     // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
@@ -125,14 +129,27 @@ reservationController.createReservation = async (req, res) => {
     }
 
     // Check if requested time is in the future or is now
-    if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
-      return res.status(400).json({ message: "Reservation time must be now or in the future." });
-    }
+    // if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
+    //   return res.status(400).json({ message: "Reservation time must be now or in the future." });
+    // }
 
-    const intervalStart = openingTime.clone().add(Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval, 'minutes');
-    // Calculer le créneau correspondant pour `requestedTime`
+    // const intervalStart = openingTime.clone().add(Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval, 'minutes');
+    // // Calculer le créneau correspondant pour `requestedTime`
     
-    const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+    // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+
+
+if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
+  return res.status(400).json({ message: "Reservation time must be now or in the future." });
+}
+
+const intervalStart = openingTime.clone().add(
+  Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
+  'minutes'
+);
+
+const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+
 
     // Calculate total people reserved within this interval
     const peopleAlreadyReserved = await Reservation.aggregate([
@@ -152,7 +169,7 @@ reservationController.createReservation = async (req, res) => {
     ]);
 
     const totalPeopleReserved = peopleAlreadyReserved.length > 0 ? peopleAlreadyReserved[0].totalPeople : 0;
-
+console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',maxPeoplePerInterval)
     // Vérifier si le nombre total de personnes dépasse `maxPeoplePerInterval`
     if (totalPeopleReserved + peopleCount > maxPeoplePerInterval) {
       return res.status(400).json({ message: `Cannot create reservation: maximum people for this interval reached.` });
