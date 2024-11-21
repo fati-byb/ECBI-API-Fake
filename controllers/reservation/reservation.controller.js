@@ -114,12 +114,8 @@ const intervalStart = openingTime.clone().add(
 const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
 
     // Calculer le créneau correspondant pour `requestedTime`
-    const intervalStart = openingTime.clone().add(
-      Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
-      'minutes'
-    );
-    const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
-
+    
+ 
     // Compter le nombre total de personnes déjà réservées dans cet intervalle
     const peopleAlreadyReserved = await Reservation.aggregate([
       {

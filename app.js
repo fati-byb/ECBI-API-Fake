@@ -7,7 +7,6 @@ const cors = require('cors');
  const path = require('path');
 const apiRouter = require('./routes/index.routes');
 require('./config/passport')(passport);
-
 const app = express();
 
 let isProduction = process.env.NODE_ENV === "production";
