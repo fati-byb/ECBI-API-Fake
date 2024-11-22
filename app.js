@@ -15,7 +15,8 @@ app.use('/media/images', express.static(path.join('./media/images')));
  //-------------- DB Config --------------//
 mongoose.connect(process.env.MONGODB_URI, {
     // useNewUrlParser: true,
-    //  useUnifiedTopology: true 
+    //  useUnifiedTopology: true
+
 });
 
 mongoose.connection.on('connected', () => {
