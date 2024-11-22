@@ -53,7 +53,7 @@ app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 app.use(passport.initialize());
 
 //-------------- Routes --------------//
-app.use('/', apiRouter);
+app.use('/api', apiRouter);
 
 //-------------- ERRORS --------------//
 app.use((req, res, next) => {

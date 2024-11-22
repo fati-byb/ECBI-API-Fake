@@ -15,7 +15,7 @@ const optionRoutes = require('./options.routes');
 const settingsRoutes=require('./settings.routes')
 
 const User = require('../models/user.model');
-router.use('/category', categoryRoutes)
+router.use('/api/category', categoryRoutes)
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/options', optionRoutes)
