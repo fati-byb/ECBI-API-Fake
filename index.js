@@ -5,15 +5,16 @@ const app = require('./app');
 // const server = require('http').createServer(app);
 
 // const PORT = process.env.PORT || 4000;
- 
+
 
 // server.listen(PORT, () => {
 //     console.log(`Server is ready for connections on port ${PORT} `);
 // });
+ 
 app.get('/api/category/get-categories', (req, res) => {
   res.json({ categories: categories });
 });
- 
+
 
 // Export the app as a handler for Vercel
 module.exports = (req, res) => {
