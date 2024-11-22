@@ -10,7 +10,9 @@ const app = require('./app');
 // server.listen(PORT, () => {
 //     console.log(`Server is ready for connections on port ${PORT} `);
 // });
- 
+app.get('/api/category/get-categories', (req, res) => {
+  res.json({ categories: categories });
+});
  
 
 // Export the app as a handler for Vercel
