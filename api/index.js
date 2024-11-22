@@ -1,4 +1,5 @@
-const serverless = require('serverless-http');
-const app = require('../app'); // Import your Express app
+require('dotenv').config();
+const app = require('./app');
 
-module.exports = serverless(app);
+// Export the app directly to be used as a serverless function on Vercel
+module.exports = app;
