@@ -10,6 +10,7 @@ const reservationController = {};
  const today = dayjs().startOf('day'); // Start of today for comparison
  const currentTime = dayjs();
 // Function to get the day of the week
+
 const getDayOfWeek = (dateString) => {
   const date = new Date(dateString);
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
@@ -101,6 +102,7 @@ reservationController.createReservation = async (req, res) => {
     
     // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
 
+    const inputDate = moment(date, 'YYYY-MM-DD'); // Parse the date from request body
 
 if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
   return res.status(400).json({ message: "Reservation time must be now or in the future." });
