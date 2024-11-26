@@ -167,39 +167,6 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
 
 
 
-
-
-//update reservation status 
-
-reservationController.updateReservationStatus = async (req, res) => {
-  console.log('we re here 2')
-  const { id } = req.params; // Reservation ID passed as a URL parameter
-  const { status } = req.body; // Status field passed in the request body
-console.log('ststus', status)
-  if (!status) {
-    return res.status(400).json({ message: 'Status is required to update reservation' });
-  }
-
-  try {
-    // Find the reservation by ID and update only the status field
-    const reservation = await Reservation.findByIdAndUpdate(
-      id,
-      status,
-      {
-        new: true,          // Return the updated document
-        runValidators: true // Ensure validation is run on the update
-      }
-    );
-
-    if (!reservation) {
-      return res.status(404).json({ message: 'Reservation not found' });
-    }
-
-    res.status(200).json(reservation);
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating reservation status'});
-  }
-};
 // Update a reservation
 reservationController.updateReservation = async (req, res) => {
   console.log('we re here 1')
@@ -219,6 +186,39 @@ reservationController.updateReservation = async (req, res) => {
     res.json({ message: error.message });
   }
 };
+
+//update reservation status 
+
+reservationController.updateReservationStatus = async (req, res) => {
+  console.log('we re here 2')
+  const { id } = req.params; // Reservation ID passed as a URL parameter
+  const { status } = req.body; // Status field passed in the request body
+console.log('ststus', status)
+  if (!status) {
+    return res.status(400).json({ message: 'Status is required to update reservation' });
+  }
+
+  try {
+    // Find the reservation by ID and update only the status field
+    const reservation = await Reservation.findByIdAndUpdate(
+      id,
+      { status },
+      {
+        new: true,          // Return the updated document
+        runValidators: true // Ensure validation is run on the update
+      }
+    );
+
+    if (!reservation) {
+      return res.status(404).json({ message: 'Reservation not found' });
+    }
+
+    res.status(200).json(reservation);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating reservation status'});
+  }
+};
+
 // Delete a reservation
 reservationController.deleteReservation = async (req, res) => {
   const { id } = req.params;
