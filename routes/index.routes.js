@@ -59,7 +59,7 @@ router.get('/editEnable/:id', async (req, res) => {
     });
 // 
 
-router.post('/api/auth', require('../controllers/user/auth.controller').login);
+router.post('/auth', require('../controllers/user/auth.controller').login);
 router.get('/editEnable/:id', async (req, res) => {
         try {
             const { id } = req.params;
