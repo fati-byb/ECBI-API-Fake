@@ -169,10 +169,11 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
 
 // Update a reservation
 reservationController.updateReservation = async (req, res) => {
-  console.log('we re here 1')
 
   const { id } = req.params;
   const updateData = req.body;
+  console.log('updated table', updateData)
+
 
   try {
     const reservation = await Reservation.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
@@ -190,10 +191,11 @@ reservationController.updateReservation = async (req, res) => {
 //update reservation status 
 
 reservationController.updateReservationStatus = async (req, res) => {
-  console.log('we re here 2')
+  // console.log('we re here 2')
   const { id } = req.params; // Reservation ID passed as a URL parameter
   const { status } = req.body; // Status field passed in the request body
-console.log('ststus', status)
+  console.log('updated status', status)
+
   if (!status) {
     return res.status(400).json({ message: 'Status is required to update reservation' });
   }
