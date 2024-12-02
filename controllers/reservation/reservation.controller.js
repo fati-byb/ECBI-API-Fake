@@ -3,7 +3,6 @@ const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
 const dayjs = require('dayjs');
-const { io } = require('./server'); // Import io instance
 
 
 const reservationController = {};
@@ -56,7 +55,7 @@ reservationController.createReservation = async (req, res) => {
     console.log('shift name', shiftName)
      // Vérifiez que peopleCount est supérieur à 0
      if (peopleCount <= 0) {
-      return res.json({ message: "Invalid reservation: people count must be greater than 0." });
+      return res.status(400).json({ message: "Invalid reservation: people count must be greater than 0." });
     }
 
 
@@ -74,17 +73,17 @@ reservationController.createReservation = async (req, res) => {
     // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
     if (!scheet) {
-      return res.json({ message: "No schedule found for the selected day." });
+      return res.status(404).json({ message: "No schedule found for the selected day." });
     }
 
     if (!scheet.isopen) {
-      return res.json({ message: "Reservations are not allowed on this day." });
+      return res.status(400).json({ message: "Reservations are not allowed on this day." });
     }
 
     // Trouver le shift correspondant
     const shift = scheet.shifts.find(s => s.name === shiftName);
     if (!shift) {
-      return res.json({ message: "No shift found with the provided name." });
+      return res.status(404).json({ message: "No shift found with the provided name." });
     }
 
     // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
@@ -93,7 +92,7 @@ reservationController.createReservation = async (req, res) => {
     const requestedTime = moment(time, 'HH:mm');
 
     if (requestedTime.isBefore(openingTime) || requestedTime.isAfter(closingTime)) {
-      return res.json({ message: "Invalid reservation time." });
+      return res.status(400).json({ message: "Invalid reservation time." });
     }
 
     // Check if requested time is in the future or is now
@@ -109,7 +108,7 @@ reservationController.createReservation = async (req, res) => {
     const inputDate = moment(date, 'YYYY-MM-DD'); // Parse the date from request body
 
 if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
-  return res.json({ message: "Reservation time must be now or in the future." });
+  return res.status(400).json({ message: "Reservation time must be now or in the future." });
 }
 
 const intervalStart = openingTime.clone().add(
@@ -159,9 +158,7 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
     });
 
     const reservation = await newReservation.save();
-  
-    io.emit('NEW_RESERVATION', newReservation);
-
+  z
     res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('Error details:', err);

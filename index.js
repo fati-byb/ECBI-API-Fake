@@ -17,13 +17,13 @@ const server = http.createServer(app);
 // Create a new Socket.IO instance
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
   },
 });
 
 // Socket connection to the backend server
-const socketBackend = ioClient('http://localhost:5000'); // Connect to the Socket.IO server
+const socketBackend = ioClient('https://c91f-160-176-179-176.ngrok-free.app'); // Connect to the Socket.IO server
 
 socketBackend.on('connect', () => {
   console.log('Backend connected to the Socket.IO server');
