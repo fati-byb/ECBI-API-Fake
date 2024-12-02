@@ -158,7 +158,7 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
     });
 
     const reservation = await newReservation.save();
-  z
+  
     res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('Error details:', err);

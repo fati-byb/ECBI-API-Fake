@@ -1,71 +1,80 @@
+
 require('dotenv').config();
-const express = require('express');
+
+const app = require('./app');
 const http = require('http');
 const { Server } = require('socket.io'); // Import Socket.IO
-const ioClient = require('socket.io-client'); // Import the Socket.IO client to connect to the server
-
-// Initialize your Express app
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware to parse JSON body in requests
-app.use(express.json());
-
-// Create an HTTP server to handle requests
-const server = http.createServer(app);
-
-// Create a new Socket.IO instance
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST'],
-  },
+const ioClient = require('socket.io-client');
+ 
+app.get('/api/category/get-categories', (req, res) => {
+  res.json({ categories: categories });
 });
 
-// Socket connection to the backend server
-const socketBackend = ioClient('https://c91f-160-176-179-176.ngrok-free.app'); // Connect to the Socket.IO server
+app.get('/api/products/get-products', (req, res) => {
+  res.json();
+});
+
+const socketBackend = ioClient('http://localhost:4000'); // Connect to the Socket.IO server
 
 socketBackend.on('connect', () => {
   console.log('Backend connected to the Socket.IO server');
   
-  // Listen for events from the frontend or server
   socketBackend.on('NEW_RESERVATION', (reservation) => {
     console.log('Received new reservation in the backend:', reservation);
     // Process reservation here (e.g., save it to DB)
   });
 });
-
-// API routes
-app.post('/api/reservation/add-reservation', (req, res) => {
-  const { firstname,lastname,date,time,phone,email,shiftName,peopleCount} = req.body;
-console.log('uryewiu', req.body)
-  // Here, you would typically save the reservation data to your database.
-  // For now, we'll assume the reservation is created successfully and send it back.
-
-  const newReservation = {
-    firstname,
-    lastname,
-    date,
-    time,
-    phone,
-    email,
-    shiftName,
-    peopleCount
-  };
-
-  // Emit the actual reservation data to the Socket.IO server
-  socketBackend.emit('NEW_RESERVATION', newReservation);
-
-  // Respond back to the client with the created reservation
-  res.json({ success: true, data: newReservation });
-});
-
-// Socket event listener for messages
 socketBackend.on('message', (data) => {
   console.log('Backend received message:', data);
 });
 
-// Start the HTTP server and listen on the specified port
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Emit events from the backend to the Socket.IO server
+socketBackend.emit('NEW_RESERVATION', { name: 'John Doe', date: '2024-12-02', numberOfPeople: 4 });
+
+// Export the app as a handler for Vercel
+module.exports = (req, res) => {
+  // res.status(200).json({ message: res});
+  app(req, res); // Pass the request and response to your express app
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const express = require('express');
+// const http = require('http');
+// const socketIo = require('socket.io');
+
+// const app = express();
+// const server = http.createServer(app);
+// const io = socketIo(server, {
+    
+// });
+
+// io.on('connection', (socket) => {
+//     console.log('A user connected');
+//     socket.on('disconnect', () => {
+//         console.log('User disconnected');
+//     });
+//     socket.on('newreservation', (data) => {
+//       io.emit('sendReservation: data.id')
+//   });
+// });
+
+// server.listen(4000, () => {
+//     console.log('Server running on http://localhost:4000');
+// });
