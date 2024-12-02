@@ -3,6 +3,7 @@ const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
 const dayjs = require('dayjs');
+const { io } = require('./server'); // Import io instance
 
 
 const reservationController = {};
@@ -55,7 +56,7 @@ reservationController.createReservation = async (req, res) => {
     console.log('shift name', shiftName)
      // Vérifiez que peopleCount est supérieur à 0
      if (peopleCount <= 0) {
-      return res.status(400).json({ message: "Invalid reservation: people count must be greater than 0." });
+      return res.json({ message: "Invalid reservation: people count must be greater than 0." });
     }
 
 
@@ -73,17 +74,17 @@ reservationController.createReservation = async (req, res) => {
     // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
     if (!scheet) {
-      return res.status(404).json({ message: "No schedule found for the selected day." });
+      return res.json({ message: "No schedule found for the selected day." });
     }
 
     if (!scheet.isopen) {
-      return res.status(400).json({ message: "Reservations are not allowed on this day." });
+      return res.json({ message: "Reservations are not allowed on this day." });
     }
 
     // Trouver le shift correspondant
     const shift = scheet.shifts.find(s => s.name === shiftName);
     if (!shift) {
-      return res.status(404).json({ message: "No shift found with the provided name." });
+      return res.json({ message: "No shift found with the provided name." });
     }
 
     // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
@@ -92,7 +93,7 @@ reservationController.createReservation = async (req, res) => {
     const requestedTime = moment(time, 'HH:mm');
 
     if (requestedTime.isBefore(openingTime) || requestedTime.isAfter(closingTime)) {
-      return res.status(400).json({ message: "Invalid reservation time." });
+      return res.json({ message: "Invalid reservation time." });
     }
 
     // Check if requested time is in the future or is now
@@ -108,7 +109,7 @@ reservationController.createReservation = async (req, res) => {
     const inputDate = moment(date, 'YYYY-MM-DD'); // Parse the date from request body
 
 if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
-  return res.status(400).json({ message: "Reservation time must be now or in the future." });
+  return res.json({ message: "Reservation time must be now or in the future." });
 }
 
 const intervalStart = openingTime.clone().add(
@@ -158,10 +159,13 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
     });
 
     const reservation = await newReservation.save();
-    res.status(201).json({ success: true, data: reservation });
+  
+    io.emit('NEW_RESERVATION', newReservation);
+
+    res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('Error details:', err);
-    res.status(500).json({ error: 'Failed to create reservation', details: err.message });
+    res.json({ error: 'Failed to create reservation', details: err.message });
   }
 };
 
@@ -182,7 +186,7 @@ reservationController.updateReservation = async (req, res) => {
       return res.json({ message: 'Reservation not found' });
     }
 
-    res.status(200).json(reservation);
+    res.json(reservation);
   } catch (error) {
     res.json({ message: error.message });
   }
@@ -197,7 +201,7 @@ reservationController.updateReservationStatus = async (req, res) => {
   console.log('updated status', status)
 
   if (!status) {
-    return res.status(400).json({ message: 'Status is required to update reservation' });
+    return res.json({ message: 'Status is required to update reservation' });
   }
 
   try {
@@ -212,12 +216,12 @@ reservationController.updateReservationStatus = async (req, res) => {
     );
 
     if (!reservation) {
-      return res.status(404).json({ message: 'Reservation not found' });
+      return res.json({ message: 'Reservation not found' });
     }
 
-    res.status(200).json(reservation);
+    res.json(reservation);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating reservation status'});
+    res.json({ message: 'Error updating reservation status'});
   }
 };
 
