@@ -1,6 +1,8 @@
-const Reservation = require('../../models/reservation.model');
+
 const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
+const Reservation = require('../../models/reservation.model');
+
 const moment = require('moment');
 const dayjs = require('dayjs');
 const { emitNewReservation } = require('../../app');
@@ -9,7 +11,6 @@ const reservationController = {};
  const today = dayjs().startOf('day'); // Start of today for comparison
  const currentTime = dayjs();
 // Function to get the day of the week
-
 const getDayOfWeek = (dateString) => {
   const date = new Date(dateString);
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
@@ -52,19 +53,9 @@ const getDayOfWeek = (dateString) => {
 reservationController.getReservations = async (req, res) => {
 
 
-//   const fakeReservation = {
-//     id: "12345",
-//     name: "Test User",
-//     reservationTime: "2024-12-03T15:30:00Z",
-//     table: 5,
-// };
-
-// emitNewReservation(fakeReservation);
-// console.log("Fake reservation sent:", fakeReservation);
-  console.log('we re here 0')
-
   try {
     const reservations = await Reservation.find().populate("table");
+  console.log('we re here 0')
 
     // Populate shift details from WeeklyScheet
     const populatedReservations = await Promise.all(reservations.map(async reservation => {

@@ -28,7 +28,7 @@ router.use('/scheet', WeeklyScheetRoutes)
 router.use('/zones',zoneRoutes)
 router.use('/tables', tableRoutes)
 router.use('/setting',settingsRoutes)
-router.use('/category', categoryRoutes)
+// router.use('/category', categoryRoutes)
 router.use('/products', productRoutes)
 
 

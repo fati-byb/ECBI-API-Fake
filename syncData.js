@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const { google } = require('googleapis');
 const fs = require('fs');
-const Reservation = require('../models/reservation.model');
+const Reservation = require('./models/reservation.model');
 
 // MongoDB connection URI and model
-const MONGO_URI = 'mongodb://habiba23:IyanHenshim2002@cluster0-shard-00-01.wec5k.mongodb.net:27017,cluster0-shard-00-02.wec5k.mongodb.net:27017,cluster0-shard-00-00.wec5k.mongodb.net:27017/ecbi?authSource=admin&replicaSet=atlas-oam500-shard-0&retryWrites=true&w=majority&ssl=true';
+const MONGO_URI ='mongodb://habiba23:IyanHenshim2002@cluster0-shard-00-01.wec5k.mongodb.net:27017,cluster0-shard-00-02.wec5k.mongodb.net:27017,cluster0-shard-00-00.wec5k.mongodb.net:27017/ecbi?authSource=admin&replicaSet=atlas-oam500-shard-0&retryWrites=true&w=majority&ssl=true';
 mongoose.connect(MONGO_URI, {
   
     serverSelectionTimeoutMS: 30000,
@@ -67,8 +67,7 @@ async function fetchAndSendData() {
       r.peopleCount,
       r.status,
     ]))];
-    console.log('reses', data)
-
+ 
     await sendDataToGoogleSheet(data);
   } catch (error) {
     console.error('Error fetching data from MongoDB:', error);
