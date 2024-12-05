@@ -7,7 +7,7 @@ const cors = require('cors');
  const path = require('path');
  const { io } = require('socket.io-client');
  const { fetchAndSendData } = require('./syncData');
- const socket = io('https://e074-105-158-84-51.ngrok-free.app');
+ const socket = io('https://4707-105-158-84-51.ngrok-free.app');
  // in order to create a google scheet
 
 
