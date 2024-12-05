@@ -3,8 +3,7 @@ const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
 const dayjs = require('dayjs');
-
-
+const { emitNewReservation } = require('../../app');
 const reservationController = {};
  // Get current time
  const today = dayjs().startOf('day'); // Start of today for comparison
@@ -17,7 +16,51 @@ const getDayOfWeek = (dateString) => {
   return days[date.getDay()];
 };
 
+// reservationController.getReservationById = async (req, res) => {
+//   const { id } = req.params;
+
+//   if (!mongoose.Types.ObjectId.isValid(id)) {
+//     return res.json({ error: 'Reservation ID is required' });
+//   }
+
+//   try {
+//     const reservation = await Reservation.findById(id);
+
+//     if (!reservation) {
+//       return res.json({ error: 'Reservation not found' });
+//     }
+
+//     const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
+//     const shift = scheet ? scheet.shifts.id(reservation.shiftId) : null;
+
+//     const populatedReservation = {
+//       ...reservation.toObject(),
+//       shift: shift ? {
+//         _id: shift._id,
+//         name: shift.name,
+//         openingTime: shift.openingTime,
+//         closingTime: shift.closingTime
+//       } : null
+//     };
+
+//     res.json(populatedReservation);
+//   } catch (err) {
+//     res.json({ error: 'Failed to fetch reservation', details: err.message });
+//   }
+// };
+
 reservationController.getReservations = async (req, res) => {
+
+
+//   const fakeReservation = {
+//     id: "12345",
+//     name: "Test User",
+//     reservationTime: "2024-12-03T15:30:00Z",
+//     table: 5,
+// };
+
+// emitNewReservation(fakeReservation);
+// console.log("Fake reservation sent:", fakeReservation);
   console.log('we re here 0')
 
   try {
@@ -73,17 +116,17 @@ reservationController.createReservation = async (req, res) => {
     // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
     if (!scheet) {
-      return res.status(404).json({ message: "No schedule found for the selected day." });
+      return res.json({ message: "No schedule found for the selected day." });
     }
 
     if (!scheet.isopen) {
-      return res.status(400).json({ message: "Reservations are not allowed on this day." });
+      return res.json({ message: "Reservations are not allowed on this day." });
     }
 
     // Trouver le shift correspondant
     const shift = scheet.shifts.find(s => s.name === shiftName);
     if (!shift) {
-      return res.status(404).json({ message: "No shift found with the provided name." });
+      return res.json({ message: "No shift found with the provided name." });
     }
 
     // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
@@ -150,19 +193,23 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
       firstname,
       lastname,
       date,
-      time: intervalStart.format('HH:mm'),
+      time,
       phone,
       email,
       shiftId: shift._id,     
       peopleCount
     });
 
+    emitNewReservation(newReservation);
+    console.log('newReservation', newReservation);
     const reservation = await newReservation.save();
-  
+
+
+
     res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('Error details:', err);
-    res.json({ error: 'Failed to create reservation', details: err.message });
+    res.json({ error: 'Failed to create rfoiwejfoijewoifeservation', details: err.message });
   }
 };
 

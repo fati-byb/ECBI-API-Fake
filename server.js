@@ -1,55 +1,25 @@
-const express = require('express');
-const Reservation = require("./models/reservation.model");
-
 const http = require('http');
-const { Server } = require('socket.io'); // Import Socket.IO
-const axios = require('axios'); // Import Axios to send POST requests
+const { Server } = require('socket.io');
 
-// Create an Express app
-const app = 
-express();
-const PORT=4000;
+const httpServer = http.createServer();
 
-// Middleware to parse JSON body in requests
-app.use(express.json());
+// Initialize Socket.IO
+const io = new Server(httpServer);
 
-// Create an HTTP server to handle requests
-const server = http.createServer(app);
-
-// Create a new Socket.IO instance
-const io = new Server(server, {
-  cors: {
-    origin: '*', // Allow all origins (update this in production for security)
-    methods: ['GET', 'POST'],
-  },
-});
-
- io.on('connection', (socket) => {
-  console.log('A new client connected.');
-
-   socket.on('message', (data) => {
-    console.log('Message received:', data);
-
-     socket.broadcast.emit('message', data);
+io.on('connection', (socket) => {
+  console.log('A client connected:', socket.id);
+  
+  socket.on('newReservation', (data) => {
+    console.log('newReservation:', data);
+    io.emit('newReservation', data);
   });
 
-  // Custom event for reservations
-  socket.on('NEW_RESERVATION', (reservation) => {
-    console.log('Received NEW_RESERVATION:', reservation);
-});
-
-  // Handle client disconnecting
   socket.on('disconnect', () => {
-    console.log('A client disconnected.');
+    console.log('Client disconnected:', socket.id);
   });
-
-  // Send a welcome message to the newly connected client
-  socket.emit('message', { message: 'Welcome to the WebSocket server' });
 });
 
-
-
-// Start the HTTP server on port 4000
-server.listen(PORT, () => {
-  console.log('Socket.IO server running on http://localhost:4000');
+const PORT = process.env.SOCKET_PORT || 5000;
+httpServer.listen(PORT, () => {
+  console.log(`Socket.IO server running on http://localhost:${PORT}`);
 });
