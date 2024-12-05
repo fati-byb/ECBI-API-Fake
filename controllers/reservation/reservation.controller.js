@@ -1,4 +1,4 @@
-const Reservation = require("../../models/reservation.model");
+const Reservation = require('../../models/reservation.model');
 const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const moment = require('moment');
