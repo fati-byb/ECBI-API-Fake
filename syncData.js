@@ -20,7 +20,7 @@ db.once('open', () => {
 
 
 // Google Sheets setup
-const credentials = JSON.parse(fs.readFileSync('./credentials/test-reservation-443716-5009c7d3e499.json'));
+const credentials = JSON.parse(fs.readFileSync('C:\\Users\\lenovo\\Downloads\\test-reservation-443716-dc21fc75a4ed.json'));
 
 const auth = new google.auth.GoogleAuth({
   credentials,

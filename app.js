@@ -131,6 +131,6 @@ app.get('/', (req, res) => {
 //       });
 
 
- fetchAndSendData();
+//  fetchAndSendData();
 
 module.exports = app;
