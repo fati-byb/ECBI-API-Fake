@@ -13,12 +13,13 @@ const WeeklyScheetRoutes = require('./shift.routes');
 const tableRoutes= require('./tables.routes')
 const optionRoutes = require('./options.routes');
 const settingsRoutes=require('./settings.routes')
-
+const gainsRoutes = require('./gains.routes')
 const User = require('../models/user.model');
 router.use('/category', categoryRoutes)
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
 router.use('/options', optionRoutes)
+router.use('/gains',gainsRoutes)
 router.use('/products', productRoutes)
 router.get('/users/:id/activate',require('../controllers/user/user.controller').activateUser);
 router.use('/pointDeVente', pointsDeVentesRoutes);

@@ -38,11 +38,12 @@ authController.login = async (req, res, next) => {
         const { email, password } = req.body;
 
         console.log("Login request received with email:", email); // Debug
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email })
+            .populate('pointOfSale'); // Populates pointOfSale field
 
         if (!user) {
             console.log("No user found with email:", email); // Debug
-            return res.status(401).json({ message: "Unauthorized: Invalid email" });
+            return res.json({ message: "Unauthorized: Invalid email" });
         }
 
         console.log("User found:", user); // Debug
@@ -51,24 +52,28 @@ authController.login = async (req, res, next) => {
         const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
             console.log("Password is invalid for email:", email); // Debug
-            return res.status(401).json({ message: "Unauthorized: Invalid password" });
+            return res.json({ message: "Unauthorized: Invalid password" });
         }
 
         console.log("Password validated for email:", email); // Debug
 
-        // Generate JWT token
+        // Extract necessary data
         const role = user.role;
+        const pointOfSaleName = user.pointOfSale?.name || null; // Assuming 'name' is a field in PointDeVente
+
+        // Generate JWT token
         const token = jwt.sign(
-            { _id: user._id, email: user.email },
+            { _id: user._id, email: user.email, pointOfSaleName, role }, // Include pointOfSaleName in the token payload
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRATION }
         );
 
-        res.json({ success: true, token, role });
+        res.json({ success: true, token, role, pointOfSaleName });
     } catch (err) {
-        console.error("Error ioioioiduring login:", err);
-        return res.status(500).json({ message: "Internal Server Errorttt" });
+        console.error("Error during login:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 module.exports = authController;

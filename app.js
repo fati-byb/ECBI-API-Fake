@@ -7,7 +7,7 @@ const cors = require('cors');
  const path = require('path');
  const { io } = require('socket.io-client');
  const { fetchAndSendData } = require('./syncData');
- const socket = io('https://4707-105-158-84-51.ngrok-free.app');
+ const socket = io('https://2548-160-178-166-35.ngrok-free.app');
  // in order to create a google scheet
 
 
@@ -32,7 +32,7 @@ const app = express();
 // require('../config/socketServer'); 
 let isProduction = process.env.NODE_ENV === "production";
 app.use('/media/images', express.static(path.join('./media/images')));
- 
+
  //-------------- DB Config --------------//
 mongoose.connect(process.env.MONGODB_URI, {
     // serverSelectionTimeoutMS: 50000,
@@ -43,6 +43,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 mongoose.connection.on('connected', () => {
     console.log('database connected successfully');
+    setInterval(() => {
+        fetchAndSendData();
+      }, 5000);
 });
 mongoose.connection.on('error', (err) => {
     console.error(`Failed to connect to the database: ${err}`);
@@ -131,6 +134,5 @@ app.get('/', (req, res) => {
 //       });
 
 
-//  fetchAndSendData();
 
 module.exports = app;
