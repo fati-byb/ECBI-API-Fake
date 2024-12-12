@@ -43,9 +43,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 mongoose.connection.on('connected', () => {
     console.log('database connected successfully');
-    // setInterval(() => {
-    //     fetchAndSendData();
-    //   }, 5000);
+     
+        // fetchAndSendData();
+      
 });
 mongoose.connection.on('error', (err) => {
     console.error(`Failed to connect to the database: ${err}`);

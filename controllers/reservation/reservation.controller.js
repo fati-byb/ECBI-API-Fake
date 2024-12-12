@@ -17,38 +17,38 @@ const getDayOfWeek = (dateString) => {
   return days[date.getDay()];
 };
 
-// reservationController.getReservationById = async (req, res) => {
-//   const { id } = req.params;
+reservationController.getReservationById = async (req, res) => {
+  const { id } = req.params;
 
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     return res.json({ error: 'Reservation ID is required' });
-//   }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.json({ error: 'Reservation ID is required' });
+  }
 
-//   try {
-//     const reservation = await Reservation.findById(id);
+  try {
+    const reservation = await Reservation.findById(id);
 
-//     if (!reservation) {
-//       return res.json({ error: 'Reservation not found' });
-//     }
+    if (!reservation) {
+      return res.json({ error: 'Reservation not found' });
+    }
 
-//     const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
-//     const shift = scheet ? scheet.shifts.id(reservation.shiftId) : null;
+    const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
+    const shift = scheet ? scheet.shifts.id(reservation.shiftId) : null;
 
-//     const populatedReservation = {
-//       ...reservation.toObject(),
-//       shift: shift ? {
-//         _id: shift._id,
-//         name: shift.name,
-//         openingTime: shift.openingTime,
-//         closingTime: shift.closingTime
-//       } : null
-//     };
+    const populatedReservation = {
+      ...reservation.toObject(),
+      shift: shift ? {
+        _id: shift._id,
+        name: shift.name,
+        openingTime: shift.openingTime,
+        closingTime: shift.closingTime
+      } : null
+    };
 
-//     res.json(populatedReservation);
-//   } catch (err) {
-//     res.json({ error: 'Failed to fetch reservation', details: err.message });
-//   }
-// };
+    res.json(populatedReservation);
+  } catch (err) {
+    res.json({ error: 'Failed to fetch reservation', details: err.message });
+  }
+};
 
 reservationController.getReservations = async (req, res) => {
 
@@ -72,6 +72,7 @@ reservationController.getReservations = async (req, res) => {
         } : null
       };
     }));
+        fetchAndSendData();
 
     res.json(populatedReservations);
   } catch (err) {
