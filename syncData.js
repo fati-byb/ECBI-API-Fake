@@ -40,9 +40,9 @@ async function sendDataToGoogleSheet(data) {
 // Fetch data from API using Axios and send it to Google Sheets
 async function fetchAndSendData() {
   try {
-    const res = await axios.get("https://ecbi-api-fake-1-dusky.vercel.app/api/reservation/get-reservation");
+    const res = await axios.get("https://ecbi-api-fake-1.vercel.app/api/reservation/get-reservation");
 
-    const reservations = res.data;  // Axios automatically parses JSON
+    const reservations = res.data;  
 
     const headers = ['Id', 'First Name', 'Last Name', 'Email', 'Phone', 'Date', 'Time', 'People Count', 'Status'];
 
