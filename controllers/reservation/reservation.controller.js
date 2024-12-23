@@ -2,9 +2,9 @@
 const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const Reservation = require('../../models/reservation.model');
+const moment = require('moment-timezone');
 
-const moment = require('moment');
-const dayjs = require('dayjs');
+ const dayjs = require('dayjs');
 const { emitNewReservation } = require('../../app');
 const reservationController = {};
  // Get current time
@@ -89,20 +89,22 @@ reservationController.createReservation = async (req, res) => {
     console.log('shift name', shiftName)
      // Vérifiez que peopleCount est supérieur à 0
      if (peopleCount <= 0) {
-      return res.status(400).json({ message: "Invalid reservation: people count must be greater than 0." });
+      return res.json({ message: "Invalid reservation: people count must be greater than 0." });
     }
 
 
     const selectedDay = getDayOfWeek(date);
-
-    // Récupérer les paramètres globaux
+    const today = moment().startOf('day'); // Start of the current day
+     
+    const inputDate = moment(date, 'YYYY-MM-DD'); // Parse the date from request body
+     // Récupérer les paramètres globaux
     const globalSettings = await GlobalSettings.findOne();
     if (!globalSettings) {
-      return res.status(500).json({ message: "Global settings not found." });
+      return res.json({ message: "Global settings not found." });
     }
     const { reservationInterval, maxPeoplePerInterval } = globalSettings;
     console.log("Retrieved Reservation Interval:", reservationInterval);
-    console.log("Retrieved Reservation Interval:", maxPeoplePerInterval);
+    console.log("Retrieved Reservation max people:", maxPeoplePerInterval);
 
     // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
@@ -123,34 +125,70 @@ reservationController.createReservation = async (req, res) => {
     // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
     const openingTime = moment(shift.openingTime, 'HH:mm');
     const closingTime = moment(shift.closingTime, 'HH:mm');   
-    const requestedTime = moment(time, 'HH:mm');
+ 
+    const timezone = "Africa/Casablanca"; // Morocco timezone
 
-    if (requestedTime.isBefore(openingTime) || requestedTime.isAfter(closingTime)) {
-      return res.status(400).json({ message: "Invalid reservation time." });
-    }
-
-    // Check if requested time is in the future or is now
-    // if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
-    //   return res.status(400).json({ message: "Reservation time must be now or in the future." });
-    // }
-
-    // const intervalStart = openingTime.clone().add(Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval, 'minutes');
-    // // Calculer le créneau correspondant pour `requestedTime`
+    // Parse current and requested time
+    const currentTime = moment().tz(timezone);
+    const requestedTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm").tz(timezone);
     
-    // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
-
-    const inputDate = moment(date, 'YYYY-MM-DD'); // Parse the date from request body
-
-if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
-  return res.status(400).json({ message: "Reservation time must be now or in the future." });
+    // Calculate time difference in minutes
+    const timeDifference = requestedTime.diff(currentTime, "minutes"); // Corrected order for positive difference
+    
+    console.log("Current Time:", currentTime.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("Requested Time:", requestedTime.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("Time Difference (Minutes):", timeDifference);
+    
+    // Validate reservation time
+    if (timeDifference < 60) { // Less than 60 minutes
+      return res.json({
+        message: "Reservation time must be at least 1 hour ahead of the current time.",
+      });
+    }
+    
+    
+   // Ensure the reservation is for today or later
+if (inputDate.isBefore(today, 'day')) {
+  return res.json({ message: "Reservation date must be today or in the future." });
 }
 
+
+ 
+if (inputDate.isSame(today, 'day')) {
+  const timezone = "Africa/Casablanca"; // Morocco timezone
+
+  const currentTime = moment().tz(timezone); // Adjust timezone
+  const requestedTime = moment(time, 'HH:mm').tz(timezone); // Ensure the same timezone
+
+  const timeDifferenceMs = currentTime.diff(requestedTime); // In milliseconds
+  const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60); // Convert to minutes
+
+  console.log('Current Timee:', currentTime.format('HH:mm:ss Z'));
+  console.log('Requested Time:', requestedTime.format('HH:mm:ss Z'));
+  console.log('Time Difference (Minutes):', timeDifferenceMinutes);
+
+  if (timeDifferenceMinutes > 0 && timeDifferenceMinutes <= 60) {
+    return res.status(400).json({
+      message: "Reservation time must be at least 1 hour ahead of the current time.",
+    });
+  }
+}
+
+
+
+// Proceed with interval calculation and reservation logic
 const intervalStart = openingTime.clone().add(
   Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
   'minutes'
 );
-
 const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+
+// const intervalStart = openingTime.clone().add(
+//   Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
+//   'minutes'
+// );
+
+// const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
 
     // Calculer le créneau correspondant pour `requestedTime`
     
@@ -200,7 +238,7 @@ emitNewReservation(newReservation);
     res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('Error details:', err);
-    res.json({ error: 'Failed to create rfoiwejfoijewoifeservation', details: err.message });
+    res.json({ error: 'Failed to create reservation', details: err.message });
   }
 };
 

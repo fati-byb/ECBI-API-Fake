@@ -12,6 +12,7 @@ const WeeklyScheetRoutes = require('./shift.routes');
 // const User = require('../models/user.model');
 const tableRoutes= require('./tables.routes')
 const optionRoutes = require('./options.routes');
+const visiteursRoutes= require('./visiteurs.routes')
 const settingsRoutes=require('./settings.routes')
 const gainsRoutes = require('./gains.routes')
 const User = require('../models/user.model');
@@ -29,6 +30,7 @@ router.use('/scheet', WeeklyScheetRoutes)
 router.use('/zones',zoneRoutes)
 router.use('/tables', tableRoutes)
 router.use('/setting',settingsRoutes)
+router.use('/visiteurs',visiteursRoutes)
 // router.use('/category', categoryRoutes)
 router.use('/products', productRoutes)
 
