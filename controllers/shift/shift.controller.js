@@ -204,35 +204,45 @@ WeeklyScheetController.updateWeeklyScheet = async (req, res) => {
     if (!weeklyScheet) {
       return res.json({ message: "WeeklyScheet non trouvée" });
     }
-
-    // Mettre à jour les champs globaux
-    if (dayname !== undefined) weeklyScheet.dayname = dayname;
-    if (isopen !== undefined) weeklyScheet.isopen = isopen;
-    // if (reservationInterval !== undefined) weeklyScheet.reservationInterval = reservationInterval;
-    // if (maxPeoplePerInterval !== undefined) weeklyScheet.maxPeoplePerInterval = maxPeoplePerInterval;
-
-    // Mettre à jour les shifts
+  
+    console.log("Avant la mise à jour:", weeklyScheet);
+  
+    if (dayname !== undefined) {
+      weeklyScheet.dayname = dayname;
+      console.log("Nouveau dayname:", dayname);
+    }
+  
+    if (isopen !== undefined) {
+      weeklyScheet.isopen = isopen;
+      console.log("Nouveau isopen:", isopen);
+    }
+  
     if (shifts) {
       shifts.forEach(newShift => {
+        console.log("Shift reçu:", newShift);
         const existingShift = weeklyScheet.shifts.id(newShift._id);
         if (existingShift) {
           existingShift.name = newShift.name || existingShift.name;
           existingShift.openingTime = newShift.openingTime || existingShift.openingTime;
           existingShift.closingTime = newShift.closingTime || existingShift.closingTime;
           existingShift.duréeDeReservation = newShift.duréeDeReservation || existingShift.duréeDeReservation;
+          console.log("Shift mis à jour:", existingShift);
         } else {
           weeklyScheet.shifts.push(newShift);
+          console.log("Nouveau shift ajouté:", newShift);
         }
       });
     }
-
+  
     await weeklyScheet.save();
+    console.log("Après la mise à jour:", weeklyScheet);
+  
     res.status(200).json(weeklyScheet);
   } catch (error) {
-    res.json({ message: "Erreur serveur", error });
+    console.error("Erreur serveur:", error);
+    res.status(500).json({ message: "Erreur serveur", error });
   }
-};
-
+}  
 // Ajouter un shift à une carte horaire existante
 WeeklyScheetController.addShift = async (req, res) => {
   const { scheetId } = req.params; 
@@ -285,26 +295,6 @@ WeeklyScheetController.deleteShift = async (req, res) => {
   }
 };
 
-// WeeklyScheetController.updateReservationSettings = async (req, res) => {
-//   const { reservationInterval, maxPeoplePerInterval } = req.body;
 
-//   try {
-//     // Validation des entrées
-//     if (reservationInterval === undefined || maxPeoplePerInterval === undefined) {
-//       return res.json({ message: "Les deux champs 'reservationInterval' et 'maxPeoplePerInterval' sont requis." });
-//     }
-
-//     // Mettre à jour tous les WeeklyScheets avec les nouvelles valeurs
-//     const updatedScheets = await WeeklyScheet.updateMany(
-//       {}, // Critère vide pour mettre à jour tous les documents
-//       { reservationInterval, maxPeoplePerInterval }, // Nouvelles valeurs
-//       { new: true }
-//     );
-
-//     res.status(200).json({ message: "Paramètres de réservation mis à jour pour toutes les feuilles d'horaires", updatedScheets });
-//   } catch (error) {
-//     res.json({ message: "Erreur lors de la mise à jour des paramètres", error });
-//   }
-// };
 
 module.exports = WeeklyScheetController;

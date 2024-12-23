@@ -1,3 +1,4 @@
+const { type } = require('express/lib/response');
 const mongoose = require('mongoose');
 
 const ReservationSchema = new mongoose.Schema({
@@ -14,7 +15,7 @@ const ReservationSchema = new mongoose.Schema({
     default: ''
   },
   date: {
-    type: String,
+    type: Date,
     required: true,
     trim: true,
   },

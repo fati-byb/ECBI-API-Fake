@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const passport = require('passport');
 const cors = require('cors');
+// const { fetchAndSendData } = require('./controllers/googleSheet/googleSheetController');
+
  const path = require('path');
 const apiRouter = require('./routes/index.routes');
 require('./config/passport')(passport);
@@ -53,8 +55,15 @@ app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 
 app.use(passport.initialize());
 
+
+
+
+
+
 //-------------- Routes --------------//
 app.use('/api', apiRouter);
+
+
 
 //-------------- ERRORS --------------//
 app.use((req, res, next) => {
@@ -71,6 +80,9 @@ app.use((err, req, res, next) => {
 app.get('/', (req, res) => {
     res.send('Hello from Vercel!');
   });
+
+// fetchAndSendData();
+
 module.exports = app;
 
 

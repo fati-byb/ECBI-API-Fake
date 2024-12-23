@@ -16,6 +16,7 @@ const getDayOfWeek = (dateString) => {
   return days[date.getDay()];
 };
 
+
 reservationController.getReservations = async (req, res) => {
   try {
     const reservations = await Reservation.find().populate("table");
@@ -43,6 +44,39 @@ reservationController.getReservations = async (req, res) => {
 };
 
 
+reservationController.getOneReservation = async (req, res) => {
+  try {
+    const { id } = req.params; // Récupération de l'identifiant de la réservation
+    const reservation = await Reservation.findById(id); // Trouver la réservation et peupler la table associée
+
+    if (!reservation) {
+      return res.json({ error: "Réservation non trouvée" });
+    }
+
+    res.status(200).json(reservation);
+  } catch (err) {
+    res.json({ error: "Erreur lors de la récupération de la réservation", details: err.message });
+  }
+};
+
+
+// productController.getProductById = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const product = await Product.findById(id);
+//     if (!product) {
+//       return res.json({ message: 'Product not found' });
+//     }
+//     res.status(200).json(product);
+//   } catch (error) {
+//     console.error('Error fetching product by ID:', error);
+//     res.status(500).json({ error: 'Failed to fetch product by ID' });
+//   }
+// };
+
+
+
+
 //CHANGEMENT
 
 reservationController.createReservation = async (req, res) => {
@@ -54,8 +88,8 @@ reservationController.createReservation = async (req, res) => {
       return res.status(400).json({ message: "Invalid reservation: people count must be greater than 0." });
     }
 
-
     const selectedDay = getDayOfWeek(date);
+    
 
     // Récupérer les paramètres globaux
     const globalSettings = await GlobalSettings.findOne();
@@ -69,7 +103,7 @@ reservationController.createReservation = async (req, res) => {
     // Trouver le WeeklyScheet correspondant au jour
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
     if (!scheet) {
-      return res.status(404).json({ message: "No schedule found for the selected day." });
+      return res.status(404).json({ message: "day name" });
     }
 
     if (!scheet.isopen) {
@@ -81,7 +115,7 @@ reservationController.createReservation = async (req, res) => {
     if (!shift) {
       return res.status(404).json({ message: "No shift found with the provided name." });
     }
-
+    
     // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
     const openingTime = moment(shift.openingTime, 'HH:mm');
     const closingTime = moment(shift.closingTime, 'HH:mm');   
@@ -100,6 +134,7 @@ reservationController.createReservation = async (req, res) => {
     // // Calculer le créneau correspondant pour `requestedTime`
     
     // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+    
 
 
 if (inputDate.isSame(today, 'day') && requestedTime.isBefore(currentTime)) {
@@ -139,7 +174,7 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
     if (totalPeopleReserved + peopleCount > maxPeoplePerInterval) {
       return res.status(400).json({ message: `Cannot create reservation: maximum people for this interval reached.` });
     }
-
+  
     // Créer la nouvelle réservation
     const newReservation = new Reservation({
       firstname,
@@ -151,7 +186,7 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
       shiftId: shift._id,     
       peopleCount
     });
-
+  
     const reservation = await newReservation.save();
     res.status(201).json({ success: true, data: reservation });
   } catch (err) {

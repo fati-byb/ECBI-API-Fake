@@ -15,10 +15,9 @@ app.get('/api/category/get-categories', (req, res) => {
   res.json({ categories: categories });
 });
 
-app.get('/api/products/get-products', (req, res) => {
+app.get('/api/scheet/get-shifts', (req, res) => {
   res.json();
 });
-
 
 // Export the app as a handler for Vercel
 module.exports = (req, res) => {

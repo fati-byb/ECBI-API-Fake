@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+const axios = require('axios');
 const userRoutes = require('./users.routes');
 const zoneRoutes= require('./zones.routes')
 const pointsDeVentesRoutes = require('./pointsdeventes.routes');
@@ -14,7 +14,10 @@ const tableRoutes= require('./tables.routes')
 const optionRoutes = require('./options.routes');
 const settingsRoutes=require('./settings.routes')
 
+
 const User = require('../models/user.model');
+
+
 router.use('/category', categoryRoutes)
 
 router.use('/pointDeVente', pointsDeVentesRoutes);
@@ -57,6 +60,20 @@ router.get('/editEnable/:id', async (req, res) => {
             return res.json({ message: "Server error", error });
         }
     });
+
+
+const SHEETDB_URL = 'https://sheetdb.io/api/v1/f8xfg28m2kq4n';
+
+router.get('/sheetdata', async (req, res) => {
+    try {
+        const response = await axios.get(SHEETDB_URL);
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error('Error fetching data from SheetDB:', error.message);
+        res.status(500).send({ message: 'Failed to fetch data from SheetDB' });
+    }
+});
+
 // 
 
 router.post('/auth', require('../controllers/user/auth.controller').login);
@@ -103,3 +120,64 @@ router.use('/pointDeVente', pointsDeVentesRoutes);
 // router.use('/products', productRoutes)
 
 module.exports = router;
+
+
+
+// const { google } = require('googleapis');
+// const fs = require('fs');
+
+// // Load the service account key
+// const credentials = JSON.parse(fs.readFileSync('path/to/your-service-account-key.json'));
+
+// // Authorize Google Sheets API
+// const auth = new google.auth.GoogleAuth({
+//     credentials,
+//     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+// });
+
+// const sheets = google.sheets({ version: 'v4', auth });
+
+// // Replace with your Google Sheet ID
+// const spreadsheetId = 'your-spreadsheet-id';
+
+// // Function to add a reservation to Google Sheets
+// async function addReservationToSheet(reservationData) {
+//     try {
+//         const values = [
+//             [
+//                 reservationData.name,
+//                 reservationData.date,
+//                 reservationData.email,
+//                 reservationData.phone,
+//             ],
+//         ];
+
+//         const resource = {
+//             values,
+//         };
+
+//         await sheets.spreadsheets.values.append({
+//             spreadsheetId,
+//             range: 'Sheet1!A1:D1', // Adjust range and sheet name as needed
+//             valueInputOption: 'RAW',
+//             resource,
+//         });
+
+//         console.log('Reservation added to Google Sheets');
+//     } catch (error) {
+//         console.error('Error adding reservation to Google Sheets:', error);
+//     }
+// }
+
+// // Example usage in your reservation route
+// app.post('/api/reservation/create', async (req, res) => {
+//     const newReservation = new Reservation(req.body);
+
+//     try {
+//         const savedReservation = await newReservation.save();
+//         await addReservationToSheet(savedReservation); // Add to Google Sheets
+//         res.status(201).json(savedReservation);
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// });
