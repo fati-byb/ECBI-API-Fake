@@ -3,9 +3,12 @@ const fs = require('fs');
 const axios = require('axios');  // Import axios
 const { io } = require('socket.io-client');
 // const socket = io('https://2548-160-178-166-35.ngrok-free.app');
+const path = require('path');
 
 // Google Sheets setup
-const credentials = JSON.parse(fs.readFileSync('C:\\Users\\lenovo\\Downloads\\my-project-47988-1724857759877-0d43931ddf4e.json'));
+// const credentials = JSON.parse(fs.readFileSync('C:\\Users\\lenovo\\Downloads\\my-project-47988-1724857759877-0d43931ddf4e.json'));
+const credentialsPath = path.resolve(__dirname, 'C:\\Users\\lenovo\\Downloads\\my-project-47988-1724857759877-0d43931ddf4e.json');
+const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
 
 const auth = new google.auth.GoogleAuth({
   credentials,
