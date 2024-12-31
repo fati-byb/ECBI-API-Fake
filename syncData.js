@@ -5,7 +5,7 @@ const { io } = require('socket.io-client');
 // const socket = io('https://2548-160-178-166-35.ngrok-free.app');
 
 // Google Sheets setup
-const credentials = JSON.parse(fs.readFileSync('C:\\Users\\lenovo\\Downloads\\my-project-47988-1724857759877-12b3518c2287.json'));
+const credentials = JSON.parse(fs.readFileSync('C:\\Users\\lenovo\\Downloads\\my-project-47988-1724857759877-0d43931ddf4e.json'));
 
 const auth = new google.auth.GoogleAuth({
   credentials,
@@ -40,7 +40,7 @@ async function sendDataToGoogleSheet(data) {
 // Fetch data from API using Axios and send it to Google Sheets
 async function fetchAndSendData() {
   try {
-    const res = await axios.get("https://ecbi-api-fake-1.vercel.app/api/reservation/get-reservation");
+    const res = await axios.get("https://ecbi-api-fake-1-dusky.vercel.app/api/reservation/get-reservation");
 
     const reservations = res.data;
 
