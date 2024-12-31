@@ -4,28 +4,34 @@ const Product = require('../../models/product.model');
 const FileUpload = require('../../models/media.model'); // Import your mongoose model
 const Category = require('../../models/category.model');
 const Option = require('../../models/option.models');
+const cloudinary = require('../../config/cloudinary'); // Import Cloudinary config
+const { Readable } = require('stream');
 
 const productController = {};
 
-
-
-
-
-
-
-
 productController.getProducts = async (req, res) => {
+  const { page = 1, limit = 5} = req.query; // Defaults: page 1, 5 items per page
+  const skip = (page - 1) * limit;
   try {
-    console.log('Fetching all products');
-    
+    const totalProducts = await Product.countDocuments();
+
+     
      const products = await Product.find().populate([
-      { path: 'image' },
+     
       { path: 'category', select: 'libele' },
       {path:'options'}
-    ]); 
+    ])
+    .skip(Number(skip))
+    .limit(Number(limit));  
+    
+    
     //  ([{path:"image"},{path:"category",populate:[{path:"imageCategory"}]}])
 
-    res.status(200).json(products);
+    res.status(200).json({
+      data: products,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalProducts / limit)
+    });
   } catch (error) {
     console.error('Error fetching products:', error)
     ;
@@ -49,142 +55,116 @@ productController.getProducts = async (req, res) => {
 };
 
 
-
 productController.createProduct = async (req, res) => {
   try {
     const { libele, category, price, options } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ message: 'No image file uploaded' });
+      return res.json({ message: 'No image file uploaded' });
     }
 
     // Validate the category
     const categoryDoc = await Category.findOne({ libele: category });
     if (!categoryDoc) {
-      return res.status(400).json({ message: 'Invalid category' });
+      return res.json({ message: 'Invalid category' });
     }
 
-    // Upload the image file
-    const { originalname, encoding, mimetype, destination, filename, path, size, fieldname } = req.file;
-    const newImage = new FileUpload({
-      fieldName: fieldname,
-      originalName: originalname,
-      encoding,
-      mimeType: mimetype,
-      destination,
-      fileName: filename,
-      path,
-      size,
+    // Upload image to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'products' },
+        (error, result) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(result);
+        }
+      );
+      uploadStream.end(req.file.buffer); // Use buffer from Multer's memoryStorage
     });
-    const savedImage = await newImage.save();
 
     // Create the product without options initially
     const product = new Product({
       libele,
       price,
       category: categoryDoc._id,
-      image: savedImage._id,
+      image: uploadResult.secure_url, // Store Cloudinary image URL
     });
     await product.save();
 
-    // If options are provided, save each option with a reference to the product
-  console.log('options', options)  
-  console.log('Type of options:', typeof options);
-  parsedOptions = JSON.parse(options);
-
-    if (options && Array.isArray(parsedOptions)) {
-
+    // Handle options if provided
+    const parsedOptions = options ? JSON.parse(options) : [];
+    if (Array.isArray(parsedOptions)) {
       const optionDocs = await Promise.all(
-
         parsedOptions.map(async (option) => {
           const newOption = new Option({
             name: option.name,
             elements: option.elements,
-            product: product._id, // Link each option to the product
+            product: product._id,
           });
           const savedOption = await newOption.save();
-          return savedOption._id; // Return the ID of each saved option
+          return savedOption._id;
         })
       );
-
-      // Update the product with the option IDs
       product.options = optionDocs;
-      await product.save(); // Save the updated product with options
+      await product.save();
     }
 
-    return res.status(201).json({
+    return res.json({
       message: 'Product and options created successfully',
       product,
     });
   } catch (error) {
     console.error('Error creating product and options:', error);
-    return res.status(500).json({ message: error.message });
+    return res.json({ message: error.message });
   }
 };
-
 
 
 productController.updateProduct = async (req, res) => {
-  console.log('req', req.file)
   try {
     const { id } = req.params;
-    const { libele, category, price } = req.body;
+    const { libele, price, category, options } = req.body;
 
-    console.log('Updating product with ID:', id);
-
-    // Find the existing product
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    // Handle new image upload if provided
+    // Check if a new image is uploaded
+    let imageUrl = req.body.image; // Assume the image URL is sent in the request body
     if (req.file) {
-      const { originalname, encoding, mimetype, destination, filename, path, size, fieldname } = req.file;
+      // Convert buffer to a readable stream
+      const stream = Readable.from(req.file.buffer);
 
-      const newImage = new FileUpload({
-        fieldName: fieldname,
-        originalName: originalname,
-        encoding,
-        mimeType: mimetype,
-        destination,
-        fileName: filename,
-        path,
-        size,
+      // Upload image to Cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'products' },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        stream.pipe(uploadStream);
       });
-      const savedImage = await newImage.save();
 
-      // Set the new image ID in update data
-      product.image = savedImage._id;
+      imageUrl = uploadResult.secure_url; // Use the uploaded image URL
     }
 
-    // Update other fields
-    product.libele = libele || product.libele;
-    product.price = price || product.price;
+    // Update the product
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { libele, price, category, options, image: imageUrl },
+      { new: true } // Return the updated product
+    );
 
-    // Update category if provided
-    if (category) {
-      const categoryDoc = await Category.findOne({ _id: category });
-      if (!categoryDoc) {
-        return res.status(400).json({ message: 'Invalid category' });
-      }
-      product.category = categoryDoc._id;
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found.' });
     }
 
-   
-
-    // Save the updated product
-    await product.save();
-
-    res.status(200).json({
-      message: 'Product updated successfully',
-      data: product,
-    });
+    res.status(200).json(updatedProduct);
   } catch (error) {
     console.error('Error updating product:', error);
-    res.status(500).json({ error: 'Failed to update product' });
+    res.status(500).json({ message: 'Error updating product', error: error.message });
   }
 };
+
 
 
 // Delete a product by ID

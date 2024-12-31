@@ -16,9 +16,9 @@ userController.createUser = async (req, res, next) => {
         }
 
         // Find the PointDeVente based on the string (pointOfSale)
-        const pointDeVente = await PointDeVente.findOne({ name: pointOfSale }); // Assuming 'name' is the identifier
+        const pointDeVente = await PointDeVente.findOne({ _id: pointOfSale }); // Assuming 'name' is the identifier
         if (!pointDeVente) {
-            return res.json({ success: false, message: 'Point of sale not found.' });
+            return res.json({ success: false, message: 'Point of sale not found.'});
         }
 
         // Create a new user with the PointDeVente ID

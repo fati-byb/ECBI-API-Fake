@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+ 
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const passport = require('passport');
@@ -7,7 +8,7 @@ const cors = require('cors');
  const path = require('path');
  const { io } = require('socket.io-client');
  const { fetchAndSendData } = require('./syncData');
- const socket = io('https://5fad-41-141-98-52.ngrok-free.app');
+ const socket = io('https://8393-160-176-182-91.ngrok-free.app');
  // in order to create a google scheet
 
 
@@ -31,7 +32,7 @@ require('./config/passport')(passport);
 const app = express();
 // require('../config/socketServer'); 
 let isProduction = process.env.NODE_ENV === "production";
-app.use('/media/images', express.static(path.join('./media/images')));
+app.use('/api/media/images', express.static(path.join('./media/images')));
 
  //-------------- DB Config --------------//
 mongoose.connect(process.env.MONGODB_URI, {
@@ -43,9 +44,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 mongoose.connection.on('connected', () => {
     console.log('database connected successfully');
-    // setInterval(() => {
-    //     fetchAndSendData();
-    //   }, 5000);
+    setInterval(() => {
+        fetchAndSendData();
+      }, 5000);
 });
 mongoose.connection.on('error', (err) => {
     console.error(`Failed to connect to the database: ${err}`);

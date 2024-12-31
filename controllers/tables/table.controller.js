@@ -12,7 +12,7 @@ tableController.createTable = async (req, res) => {
     // Check if the zone exists
     const existingZone = await Zone.findOne({"libele":zone});
     if (!existingZone) {
-      return res.status(404).json({ message: 'Zone not found' });
+      return res.json({ message: 'Zone not found' });
     }
 
     // Create a new table
@@ -65,7 +65,7 @@ tableController.updateDisplayTable = async(req, res)=>{
     const table = await Table.findById(id);
 
     if (!table) {
-        return res.status(404).json({ message: 'Table not found' });
+        return res.json({ message: 'Table not found' });
     }
 
     // Toggle the display field
@@ -92,7 +92,7 @@ tableController.updateTable = async (req, res) => {
     if (zone) {
       const existingZone = await Zone.findOne({ "libele": zone.libele });
       if (!existingZone) {
-        return res.status(404).json({ message: 'Zone not found' });
+        return res.json({ message: 'Zone not found' });
       }
       updateFields.zone = existingZone._id; // Use the _id of the zone if it exists
     }

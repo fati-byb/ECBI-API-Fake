@@ -4,9 +4,21 @@ const visiteurController = {};
 
 // Fetch all visitors
 visiteurController.getVisitors = async (req, res) => {
+  const { page = 1, limit = 5} = req.query; // Defaults: page 1, 5 items per page
+  const skip = (page - 1) * limit;
   try {
-    const visitors = await Visitor.find(); // Fetch all visitors from the collection
-    res.json(visitors);
+    const totalVisitors = await Visitor.countDocuments();
+
+    const visitors = await Visitor.find()
+    .skip(Number(skip))
+    .limit(Number(limit));  
+
+    ; // Fetch all visitors from the collection
+    res.json({
+      data: visitors,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalVisitors / limit),
+    });
   } catch (error) {
     console.error('Error fetching visitors:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -31,35 +43,48 @@ visiteurController.getVisitorByEmail = async (req, res) => {
 };
 
 // Create a new visitor
+// Create or increment visits for a visitor
 visiteurController.createVisitor = async (req, res) => {
   try {
-    const { firstname, lastname, phone, email, numberOfVisits } = req.body;
+    const { firstname, lastname, phone, email } = req.body;
 
     // Validate request body
     if (!firstname || !lastname || !phone || !email) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+      return res.json({ success: false, message: 'All fields are required' });
     }
 
     // Check if the email already exists
     const existingVisitor = await Visitor.findOne({ email });
+
     if (existingVisitor) {
-      return res.status(400).json({ success: false, message: 'Visitor already exists' });
+      // Increment the number of visits by 1 if the visitor exists
+      existingVisitor.numberOfVisits = (existingVisitor.numberOfVisits || 0) + 1;
+      await existingVisitor.save();
+
+      return res.json({
+        success: true,
+        message: 'Visitor found, incremented number of visits',
+        data: existingVisitor,
+      });
     }
 
-    // Create and save the new visitor
-    const newVisitor = new Visitor({
+     const newVisitor = new Visitor({
       firstname,
       lastname,
       phone,
       email,
-      numberOfVisits: numberOfVisits || 0, // Default to 0 if not provided
+      numberOfVisits: 1, // Set initial visits to 1
     });
 
     await newVisitor.save();
 
-    res.status(201).json({ success: true, message: 'Visitor created successfully', data: newVisitor });
+    res.json({
+      success: true,
+      message: 'Visitor created successfully',
+      data: newVisitor,
+    });
   } catch (error) {
-    console.error('Error creating visitor:', error);
+    console.error('Error creating or updating visitor:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };

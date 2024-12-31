@@ -4,12 +4,12 @@ const GlobalSettings = require('../../models/setting.model');
 const Reservation = require('../../models/reservation.model');
 const moment = require('moment-timezone');
 
- const dayjs = require('dayjs');
+const dayjs = require('dayjs');
 const { emitNewReservation } = require('../../app');
 const reservationController = {};
- // Get current time
- const today = dayjs().startOf('day'); // Start of today for comparison
- const currentTime = dayjs();
+// Get current time
+const today = dayjs().startOf('day'); // Start of today for comparison
+const currentTime = dayjs();
 // Function to get the day of the week
 const getDayOfWeek = (dateString) => {
   const date = new Date(dateString);
@@ -51,31 +51,50 @@ const getDayOfWeek = (dateString) => {
 // };
 
 reservationController.getReservations = async (req, res) => {
-
+  const { page = 1, limit = 5 } = req.query; // Defaults: page 1, 10 items per page
+  const skip = (page - 1) * limit;
 
   try {
-    const reservations = await Reservation.find().populate("table");
-  console.log('we re here 0')
+    // Count total reservations for pagination
+    const totalReservations = await Reservation.countDocuments();
 
-    // Populate shift details from WeeklyScheet
-    const populatedReservations = await Promise.all(reservations.map(async reservation => {
-      const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
-      const shift = scheet.shifts.id(reservation.shiftId); // Get the shift details
+    // Fetch reservations sorted by reservationDate in descending order
+    const reservations = await Reservation.find()
+      .sort({ date: -1 }) 
+      .skip(Number(skip))
+      .limit(Number(limit));
 
-      return {
-        ...reservation.toObject(),
-        shift: shift ? {
-        _id:shift._id,
-          name: shift.name,
-          openingTime: shift.openingTime,
-          closingTime: shift.closingTime
-        } : null
-      };
-    }));
+    console.log('Reservations fetched:', reservations.length);
 
-    res.json(populatedReservations);
+    // Populate shift details for each reservation
+    const populatedReservations = await Promise.all(
+      reservations.map(async (reservation) => {
+        const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
+        const shift = scheet?.shifts.id(reservation.shiftId);
+
+        return {
+          ...reservation.toObject(),
+          shift: shift
+            ? {
+                _id: shift._id,
+                name: shift.name,
+                openingTime: shift.openingTime,
+                closingTime: shift.closingTime,
+              }
+            : null,
+        };
+      })
+    );
+
+    // Respond with the paginated, sorted, and populated data
+    res.json({
+      data: populatedReservations,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalReservations / limit),
+    });
   } catch (err) {
-    res.json({ error: 'Failed to fetch reservations', details: err.message });
+    console.error(err.message); // Log the error for debugging
+    res.status(500).json({ error: 'Failed to fetch reservations', details: err.message });
   }
 };
 
@@ -87,17 +106,16 @@ reservationController.createReservation = async (req, res) => {
   try {
     const { firstname, lastname, date, time, phone, email, shiftName, peopleCount } = req.body;
     console.log('shift name', shiftName)
-     // Vérifiez que peopleCount est supérieur à 0
-     if (peopleCount <= 0) {
+    // Vérifiez que peopleCount est supérieur à 0
+    if (peopleCount <= 0) {
       return res.json({ message: "Invalid reservation: people count must be greater than 0." });
     }
 
-
     const selectedDay = getDayOfWeek(date);
-    const today = moment().startOf('day'); // Start of the current day
-     
-    const inputDate = moment(date, 'YYYY-MM-DD'); // Parse the date from request body
-     // Récupérer les paramètres globaux
+    const today = moment().startOf('day'); 
+
+    const inputDate = moment(date, 'YYYY-MM-DD');  
+    // Récupérer les paramètres globaux
     const globalSettings = await GlobalSettings.findOne();
     if (!globalSettings) {
       return res.json({ message: "Global settings not found." });
@@ -124,75 +142,75 @@ reservationController.createReservation = async (req, res) => {
 
     // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
     const openingTime = moment(shift.openingTime, 'HH:mm');
-    const closingTime = moment(shift.closingTime, 'HH:mm');   
- 
+    const closingTime = moment(shift.closingTime, 'HH:mm');
+
     const timezone = "Africa/Casablanca"; // Morocco timezone
 
     // Parse current and requested time
     const currentTime = moment().tz(timezone);
     const requestedTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm").tz(timezone);
-    
+
     // Calculate time difference in minutes
     const timeDifference = requestedTime.diff(currentTime, "minutes"); // Corrected order for positive difference
-    
+
     console.log("Current Time:", currentTime.format("YYYY-MM-DD HH:mm:ss Z"));
     console.log("Requested Time:", requestedTime.format("YYYY-MM-DD HH:mm:ss Z"));
     console.log("Time Difference (Minutes):", timeDifference);
-    
+
     // Validate reservation time
     if (timeDifference < 60) { // Less than 60 minutes
       return res.json({
         message: "Reservation time must be at least 1 hour ahead of the current time.",
       });
     }
-    
-    
-   // Ensure the reservation is for today or later
-if (inputDate.isBefore(today, 'day')) {
-  return res.json({ message: "Reservation date must be today or in the future." });
-}
 
 
- 
-if (inputDate.isSame(today, 'day')) {
-  const timezone = "Africa/Casablanca"; // Morocco timezone
-
-  const currentTime = moment().tz(timezone); // Adjust timezone
-  const requestedTime = moment(time, 'HH:mm').tz(timezone); // Ensure the same timezone
-
-  const timeDifferenceMs = currentTime.diff(requestedTime); // In milliseconds
-  const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60); // Convert to minutes
-
-  console.log('Current Timee:', currentTime.format('HH:mm:ss Z'));
-  console.log('Requested Time:', requestedTime.format('HH:mm:ss Z'));
-  console.log('Time Difference (Minutes):', timeDifferenceMinutes);
-
-  if (timeDifferenceMinutes > 0 && timeDifferenceMinutes <= 60) {
-    return res.status(400).json({
-      message: "Reservation time must be at least 1 hour ahead of the current time.",
-    });
-  }
-}
+    // Ensure the reservation is for today or later
+    if (inputDate.isBefore(today, 'day')) {
+      return res.json({ message: "Reservation date must be today or in the future." });
+    }
 
 
 
-// Proceed with interval calculation and reservation logic
-const intervalStart = openingTime.clone().add(
-  Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
-  'minutes'
-);
-const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+    if (inputDate.isSame(today, 'day')) {
+      const timezone = "Africa/Casablanca"; // Morocco timezone
 
-// const intervalStart = openingTime.clone().add(
-//   Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
-//   'minutes'
-// );
+      const currentTime = moment().tz(timezone); // Adjust timezone
+      const requestedTime = moment(time, 'HH:mm').tz(timezone); // Ensure the same timezone
 
-// const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+      const timeDifferenceMs = currentTime.diff(requestedTime); // In milliseconds
+      const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60); // Convert to minutes
+
+      console.log('Current Timee:', currentTime.format('HH:mm:ss Z'));
+      console.log('Requested Time:', requestedTime.format('HH:mm:ss Z'));
+      console.log('Time Difference (Minutes):', timeDifferenceMinutes);
+
+      if (timeDifferenceMinutes > 0 && timeDifferenceMinutes <= 60) {
+        return res.status(400).json({
+          message: "Reservation time must be at least 1 hour ahead of the current time.",
+        });
+      }
+    }
+
+
+
+    // Proceed with interval calculation and reservation logic
+    const intervalStart = openingTime.clone().add(
+      Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
+      'minutes'
+    );
+    const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+
+    // const intervalStart = openingTime.clone().add(
+    //   Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
+    //   'minutes'
+    // );
+
+    // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
 
     // Calculer le créneau correspondant pour `requestedTime`
-    
- 
+
+
     // Compter le nombre total de personnes déjà réservées dans cet intervalle
     const peopleAlreadyReserved = await Reservation.aggregate([
       {
@@ -211,10 +229,10 @@ const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
     ]);
 
     const totalPeopleReserved = peopleAlreadyReserved.length > 0 ? peopleAlreadyReserved[0].totalPeople : 0;
-console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',maxPeoplePerInterval)
+    console.log('total', totalPeopleReserved, 'people count', peopleCount, 'maxPeople', maxPeoplePerInterval)
     // Vérifier si le nombre total de personnes dépasse `maxPeoplePerInterval`
     if (totalPeopleReserved + peopleCount > maxPeoplePerInterval) {
-      return res.status(400).json({ message: `Cannot create reservation: maximum people for this interval reached.` });
+      return res.json({ message: `Cannot create reservation: maximum people for this interval reached.` });
     }
 
     // Créer la nouvelle réservation
@@ -225,13 +243,13 @@ console.log('total',totalPeopleReserved,'people count',peopleCount,'maxPeople',m
       time,
       phone,
       email,
-      shiftId: shift._id,     
+      shiftId: shift._id,
       peopleCount
     });
 
-    
+
     const reservation = await newReservation.save();
-emitNewReservation(newReservation);
+    emitNewReservation(newReservation);
     console.log('newReservation', newReservation);
 
 
@@ -294,7 +312,7 @@ reservationController.updateReservationStatus = async (req, res) => {
 
     res.json(reservation);
   } catch (error) {
-    res.json({ message: 'Error updating reservation status'});
+    res.json({ message: 'Error updating reservation status' });
   }
 };
 
