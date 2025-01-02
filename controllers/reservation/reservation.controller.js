@@ -16,7 +16,20 @@ const getDayOfWeek = (dateString) => {
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   return days[date.getDay()];
 };
+const ensureIndexRemoved = async () => {
+  try {
+    const indexes = await Reservation.collection.indexes();
+    const emailIndex = indexes.find(index => index.name === 'email_1');
+    if (emailIndex) {
+      await Reservation.collection.dropIndex('email_1');
+      console.log('Unique index on email field has been removed.');
+    }
+  } catch (error) {
+    console.error('Error while removing index:', error.message);
+  }
+};
 
+ensureIndexRemoved();
 // reservationController.getReservationById = async (req, res) => {
 //   const { id } = req.params;
 
@@ -104,7 +117,7 @@ reservationController.getReservations = async (req, res) => {
 reservationController.createReservation = async (req, res) => {
   console.log('were here')
   try {
-    const { firstname, lastname, date, time, phone, email, shiftName, peopleCount } = req.body;
+    const { firstname, lastname, date, phone, email, shiftName, peopleCount } = req.body;
     console.log('shift name', shiftName)
     // Vérifiez que peopleCount est supérieur à 0
     if (peopleCount <= 0) {

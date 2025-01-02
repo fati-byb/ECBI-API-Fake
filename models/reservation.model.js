@@ -18,11 +18,7 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  time: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+  
   // table: {
   //   type: mongoose.Schema.Types.ObjectId,
   //   ref: "Table"
