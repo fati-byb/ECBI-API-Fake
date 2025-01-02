@@ -1,4 +1,3 @@
-const { type } = require('express/lib/response');
 const mongoose = require('mongoose');
 
 const ReservationSchema = new mongoose.Schema({
@@ -15,11 +14,6 @@ const ReservationSchema = new mongoose.Schema({
     default: ''
   },
   date: {
-    type: Date,
-    required: true,
-    trim: true,
-  },
-  time: {
     type: String,
     required: true,
     trim: true,
@@ -42,9 +36,6 @@ const ReservationSchema = new mongoose.Schema({
   },
   shiftId:
     { type: mongoose.Schema.Types.ObjectId } // Make sure this is correct
-
-
-
   ,
   peopleCount: {  // Nombre de personnes dans la réservation
     type: Number,

@@ -7,6 +7,12 @@ const PointDeVenteSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  user: {
+    type: mongoose.Types.ObjectId,
+    ref: "User", // Reference the User collection
+    required: true // Ensure each PointDeVente is associated with a user
+},
+
   name: {
     type: String,
     required: true,

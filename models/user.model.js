@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const plainPassword = '1234';
-const hashedPassword = '$2a$10$VRte4//g9y3usj2CaEMw7e/HM3di8oG/3ZHeGJQQZPw1bgXm5/w7m'; // Example from your log
-// Fonction pour hacher les mots de passe
+// const plainPassword = '1234';
+// const hashedPassword = '$2a$10$VRte4//g9y3usj2CaEMw7e/HM3di8oG/3ZHeGJQQZPw1bgXm5/w7m'; // Example from your log
+// // Fonction pour hacher les mots de passe
 const hashPass = async (password) => {
     return bcrypt.hash(password, 10);
 };
@@ -12,7 +12,12 @@ const UserSchema = mongoose.Schema({
         type: String,
         lowercase: true
     },
-
+    pointOfSale: {
+        type: mongoose.Types.ObjectId,
+        ref: "PointDeVente", // Reference the PointDeVente collection
+        default: null // Use null if no point of sale is assigned
+    },
+    
     email: {
         type: String,
         lowercase: true,
@@ -30,14 +35,14 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    pointOfSale: [
-        {
-          type: mongoose.Types.ObjectId,
-          ref: "User",
-          default:''
-        }
+    // pointOfSale: [
+    //     {
+    //       type: mongoose.Types.ObjectId,
+    //       ref: "User",
+    //       default:''
+    //     }
     
-      ],
+    //   ],
     
     role: {
         type: String,
@@ -71,13 +76,18 @@ const UserSchema = mongoose.Schema({
 // Hash le mot de passe avant de sauvegarder l'utilisateur
 UserSchema.pre('save', async function (next) {
     try {
+        // Only hash the password if it is plain text
         if (this.isModified('password') || this.isNew) {
-            this.password = await hashPass(this.password);
-            console.log('Hashed password during save:', this.password); // Logging the hashed password
+            const isAlreadyHashed = /^\$2[ayb]\$.{56}$/.test(this.password); // Check if it's already a bcrypt hash
+            if (!isAlreadyHashed) {
+                console.log('Hashing password:', this.password); // Debug log
+                this.password = await hashPass(this.password);
+                console.log('Hashed password:', this.password); // Debug log
+            }
         }
         next();
     } catch (e) {
-        return next(e);
+        next(e);
     }
 });
 
