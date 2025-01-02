@@ -1,4 +1,5 @@
 const Category = require("../../models/category.model");
+const Product = require('../../models/product.model');
 
 const categoryController = {};
 
@@ -31,12 +32,6 @@ categoryController.getCategoryByName = async (req, res) => {
          res.status(500).json({ error: 'Failed to fetch category by name' });
     }
 };
-
- 
-
- 
-
- 
  
 categoryController.createCategory = async (req, res, next) => {
      try {
@@ -62,6 +57,8 @@ categoryController.deleteCategory = async (req, res) => {
     const { id } = req.params;
 
     try {
+        await Product.deleteMany({ category: id });
+
         // Find the category by ID and delete it
         const category = await Category.findByIdAndDelete(id);
 

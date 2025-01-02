@@ -15,14 +15,19 @@ const productSchema = new mongoose.Schema({
     ref: 'Category',
     required: true,
   },
+  // image: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'FileUpload',
+  //   required: true,
+  // },
   image: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'FileUpload',
+    type: String, // Change from ObjectId to String
     required: true,
   },
   options: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Option', 
+    ref: 'Option',
+    required:false 
     
     // Reference to Option model
   }],

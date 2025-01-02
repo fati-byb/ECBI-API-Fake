@@ -3,9 +3,13 @@
 // const axios = require('axios');  // Import axios
 // const { io } = require('socket.io-client');
 // // const socket = io('https://2548-160-178-166-35.ngrok-free.app');
+// const path = require('path');
 
 // // Google Sheets setup
-// const credentials = JSON.parse(fs.readFileSync('C:\\Users\\lenovo\\Downloads\\my-project-47988-1724857759877-12b3518c2287.json'));
+// const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || path.resolve(__dirname, 'my-project-47988-1724857759877-0d43931ddf4e.json');
+// const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+// console.log('Computed credentials path:', credentialsPath);
+
 
 // const auth = new google.auth.GoogleAuth({
 //   credentials,
@@ -16,17 +20,15 @@
 
 // const spreadsheetId = '14ZM2nzpoZe00kUejKGmO1ljOGwLtGVmrVw0xkuTPfHk';  // Replace with your Google Sheet ID
 
-// // Function to send data to Google Sheets
-// async function sendDataToGoogleSheet(data) {
+//  async function sendDataToGoogleSheet(data) {
 //   try {
-//     // Use the full array of reservations, including headers
-//     const resource = {
+//      const resource = {
 //       values: data,
 //     };
 
 //     await sheets.spreadsheets.values.update({
 //       spreadsheetId,
-//       range: 'Sheet1!A1', // Modify based on your Sheet name and range
+//       range: 'Sheet1!A1', 
 //       valueInputOption: 'RAW',
 //       resource,
 //     });
@@ -37,35 +39,30 @@
 //   }
 // }
 
-// // Fetch data from API using Axios and send it to Google Sheets
-// async function fetchAndSendData() {
+//  async function fetchAndSendData() {
 //   try {
 //     const res = await axios.get("https://ecbi-api-fake-1-dusky.vercel.app/api/reservation/get-reservation");
 
 //     const reservations = res.data;
 
-//     // Ensure the date field is correctly parsed as Date
-//     const sortedReservations = reservations.sort((a, b) => {
-//       const dateA = new Date(a.createdAt); // Use createdAt for latest
+//      const sortedReservations = reservations.sort((a, b) => {
+//       const dateA = new Date(a.createdAt);  
 //       const dateB = new Date(b.createdAt);
 
-//       // Check if any dates are invalid
-//       if (isNaN(dateA) || isNaN(dateB)) {
-//         return 0; // If any date is invalid, keep the order intact
+//        if (isNaN(dateA) || isNaN(dateB)) {
+//         return 0;  
 //       }
 
-//       return dateB - dateA; // Sort by most recent createdAt date
+//       return dateB - dateA;  
 //     });
 
-//     // Get the most recent reservation based on createdAt
-//     const latestReservation = sortedReservations[0];
+//      const latestReservation = sortedReservations[0];
 
 //     console.log('Latest reservation:', latestReservation);
 
 //     const headers = ['Id', 'First Name', 'Last Name', 'Email', 'Phone', 'Date', 'Time', 'People Count', 'Status'];
 
-//     // Construct the data array with headers and the latest reservation's values
-//     const data = [
+//      const data = [
 //       headers,
 //       [
 //         latestReservation._id,
@@ -80,8 +77,7 @@
 //       ],
 //     ];
 
-//     // Now send this most recent reservation data to Google Sheets
-//     await sendDataToGoogleSheet(data);
+//      await sendDataToGoogleSheet(data);
 
 //   } catch (error) {
 //     console.error('Error fetching data from API:', error);

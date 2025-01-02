@@ -4,9 +4,21 @@ const gainController = {};
 
 // Fetch all gains
 gainController.getGains = async (req, res) => {
+
+  const { page = 1, limit = 5} = req.query;
+  const skip = (page - 1) * limit;
   try {
-    const gains = await Gain.find(); // Fetch all documents in the collection
-    res.json({ success: true, data: gains });
+    const totalGains = await Gain.countDocuments()
+    const gains = await Gain.find()  
+    .skip(Number(skip))
+    .limit(Number(limit));  
+    
+    
+    res.json({
+      data: gains,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalGains / limit),
+  });
   } catch (error) {
     console.error('Error fetching gains:', error);
     res.status(500).json({ success: false, message: 'Server error' });

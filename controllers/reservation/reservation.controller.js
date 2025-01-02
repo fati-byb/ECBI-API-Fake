@@ -9,41 +9,107 @@ moment.locale('fr');
  const dayjs = require('dayjs');
 const { emitNewReservation } = require('../../app');
 const reservationController = {};
- // Get current time
- const today = dayjs().startOf('day'); // Start of today for comparison
- const currentTime = dayjs();
+// Get current time
+const today = dayjs().startOf('day'); // Start of today for comparison
+const currentTime = dayjs();
 // Function to get the day of the week
 const getDayOfWeek = (dateString) => {
   const date = new Date(dateString);
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   return days[date.getDay()];
 };
+const ensureIndexRemoved = async () => {
+  try {
+    const indexes = await Reservation.collection.indexes();
+    const emailIndex = indexes.find(index => index.name === 'email_1');
+    if (emailIndex) {
+      await Reservation.collection.dropIndex('email_1');
+      console.log('Unique index on email field has been removed.');
+    }
+  } catch (error) {
+    console.error('Error while removing index:', error.message);
+  }
+};
 
+ensureIndexRemoved();
+// reservationController.getReservationById = async (req, res) => {
+//   const { id } = req.params;
+
+//   if (!mongoose.Types.ObjectId.isValid(id)) {
+//     return res.json({ error: 'Reservation ID is required' });
+//   }
+
+//   try {
+//     const reservation = await Reservation.findById(id);
+
+//     if (!reservation) {
+//       return res.json({ error: 'Reservation not found' });
+//     }
+
+//     const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
+//     const shift = scheet ? scheet.shifts.id(reservation.shiftId) : null;
+
+//     const populatedReservation = {
+//       ...reservation.toObject(),
+//       shift: shift ? {
+//         _id: shift._id,
+//         name: shift.name,
+//         openingTime: shift.openingTime,
+//         closingTime: shift.closingTime
+//       } : null
+//     };
+
+//     res.json(populatedReservation);
+//   } catch (err) {
+//     res.json({ error: 'Failed to fetch reservation', details: err.message });
+//   }
+// };
 
 reservationController.getReservations = async (req, res) => {
+  const { page = 1, limit = 5 } = req.query; // Defaults: page 1, 10 items per page
+  const skip = (page - 1) * limit;
+
   try {
-    const reservations = await Reservation.find().populate("table");
-  console.log('we re here 0')
+    // Count total reservations for pagination
+    const totalReservations = await Reservation.countDocuments();
 
-    // Populate shift details from WeeklyScheet
-    const populatedReservations = await Promise.all(reservations.map(async reservation => {
-      const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
-      const shift = scheet.shifts.id(reservation.shiftId); // Get the shift details
+    // Fetch reservations sorted by reservationDate in descending order
+    const reservations = await Reservation.find()
+      .sort({ date: -1 }) 
+      .skip(Number(skip))
+      .limit(Number(limit));
 
-      return {
-        ...reservation.toObject(),
-        shift: shift ? {
-        _id:shift._id,
-          name: shift.name,
-          openingTime: shift.openingTime,
-          closingTime: shift.closingTime
-        } : null
-      };
-    }));
+    console.log('Reservations fetched:', reservations.length);
 
-    res.json(populatedReservations);
+    // Populate shift details for each reservation
+    const populatedReservations = await Promise.all(
+      reservations.map(async (reservation) => {
+        const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
+        const shift = scheet?.shifts.id(reservation.shiftId);
+
+        return {
+          ...reservation.toObject(),
+          shift: shift
+            ? {
+                _id: shift._id,
+                name: shift.name,
+                openingTime: shift.openingTime,
+                closingTime: shift.closingTime,
+              }
+            : null,
+        };
+      })
+    );
+
+    // Respond with the paginated, sorted, and populated data
+    res.json({
+      data: populatedReservations,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalReservations / limit),
+    });
   } catch (err) {
-    res.json({ error: 'Failed to fetch reservations', details: err.message });
+    console.error(err.message); // Log the error for debugging
+    res.status(500).json({ error: 'Failed to fetch reservations', details: err.message });
   }
 };
 
@@ -594,8 +660,7 @@ console.log("req.body", req.body)
       return res.json({ message: "No shift found with the provided name." });
     }
 
-    const openingTime = moment(shift.openingTime, "HH:mm");
-    const closingTime = moment(shift.closingTime, "HH:mm");
+    
 
     const intervalStart = openingTime.clone().add(
       Math.floor(requestedTime.diff(openingTime, "minutes") / reservationInterval) * reservationInterval,
@@ -603,6 +668,72 @@ console.log("req.body", req.body)
     );
     const intervalEnd = intervalStart.clone().add(reservationInterval, "minutes");
 
+    // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
+    const openingTime = moment(shift.openingTime, 'HH:mm');
+    const closingTime = moment(shift.closingTime, 'HH:mm');
+
+ 
+
+    // Parse current and requested time
+    const currentTime = moment().tz(timezone);
+   
+
+    // Calculate time difference in minutes
+    const timeDifference = requestedTime.diff(currentTime, "minutes"); // Corrected order for positive difference
+
+    console.log("Current Time:", currentTime.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("Requested Time:", requestedTime.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("Time Difference (Minutes):", timeDifference);
+
+    // Validate reservation time
+    if (timeDifference < 60) { // Less than 60 minutes
+      return res.json({
+        message: "Reservation time must be at least 1 hour ahead of the current time.",
+      });
+    }
+
+
+    // Ensure the reservation is for today or later
+    if (inputDate.isBefore(today, 'day')) {
+      return res.json({ message: "Reservation date must be today or in the future." });
+    }
+
+
+
+    if (inputDate.isSame(today, 'day')) {
+      const timezone = "Africa/Casablanca"; // Morocco timezone
+
+      const currentTime = moment().tz(timezone); // Adjust timezone
+      const requestedTime = moment(time, 'HH:mm').tz(timezone); // Ensure the same timezone
+
+      const timeDifferenceMs = currentTime.diff(requestedTime); // In milliseconds
+      const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60); // Convert to minutes
+
+      console.log('Current Timee:', currentTime.format('HH:mm:ss Z'));
+      console.log('Requested Time:', requestedTime.format('HH:mm:ss Z'));
+      console.log('Time Difference (Minutes):', timeDifferenceMinutes);
+
+      if (timeDifferenceMinutes > 0 && timeDifferenceMinutes <= 60) {
+        return res.status(400).json({
+          message: "Reservation time must be at least 1 hour ahead of the current time.",
+        });
+      }
+    }
+
+
+
+   
+    // const intervalStart = openingTime.clone().add(
+    //   Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
+    //   'minutes'
+    // );
+
+    // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+
+    // Calculer le créneau correspondant pour `requestedTime`
+
+
+    // Compter le nombre total de personnes déjà réservées dans cet intervalle
     const peopleAlreadyReserved = await Reservation.aggregate([
       {
         $match: {
@@ -620,9 +751,10 @@ console.log("req.body", req.body)
     ]);
 
     const totalPeopleReserved = peopleAlreadyReserved.length > 0 ? peopleAlreadyReserved[0].totalPeople : 0;
-
+    console.log('total', totalPeopleReserved, 'people count', peopleCount, 'maxPeople', maxPeoplePerInterval)
+    // Vérifier si le nombre total de personnes dépasse `maxPeoplePerInterval`
     if (totalPeopleReserved + peopleCount > maxPeoplePerInterval) {
-      return res.json({ message: "Cannot create reservation: maximum people for this interval reached." });
+      return res.json({ message: `Cannot create reservation: maximum people for this interval reached.` });
     }
 
     const newReservation = new Reservation({
@@ -635,8 +767,11 @@ console.log("req.body", req.body)
       peopleCount
     });
 
+
     const reservation = await newReservation.save();
     emitNewReservation(newReservation);
+    console.log('newReservation', newReservation);
+
 
     res.json({ success: true, data: reservation });
   } catch (err) {
@@ -698,7 +833,7 @@ reservationController.updateReservationStatus = async (req, res) => {
 
     res.json(reservation);
   } catch (error) {
-    res.json({ message: 'Error updating reservation status'});
+    res.json({ message: 'Error updating reservation status' });
   }
 };
 

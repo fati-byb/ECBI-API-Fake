@@ -11,9 +11,6 @@
     required: true,
     min: 1,  // Minimum value should be 1 to ensure valid input
   },
-  
- 
-
   min: {
     type: Number,
     required: true,

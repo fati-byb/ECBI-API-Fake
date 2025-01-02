@@ -30,8 +30,7 @@ router.use('/zones',zoneRoutes)
 router.use('/tables', tableRoutes)
 router.use('/setting',settingsRoutes)
 router.use('/visiteurs',visiteursRoutes)
-// router.use('/category', categoryRoutes)
-router.use('/products', productRoutes)
+ router.use('/products', productRoutes)
 
 
 // const User = require('../models/user.model');

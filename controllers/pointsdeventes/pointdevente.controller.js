@@ -27,10 +27,10 @@ pointDeVenteController.getRestaurantByName = async (req, res) => {
         const restaurant = await PointDeVente.findOne({name});
         
         if (!restaurant) {
-            return res.status(404).json({ message: 'Restaurant not found' });
+            return res.json({ message: 'Restaurant not found' });
         }
 
-        res.status(200).json(restaurant._id);
+        res.status(200).json(restaurant.id);
     } catch (error) {
         console.log('Error fetching restaurant by name:', error);
         res.status(500).json({ error: 'Failed to fetch restaurant by name' });
@@ -90,29 +90,28 @@ pointDeVenteController.unarchiveRestaurant = async (req, res, next) => {
 };
 
 pointDeVenteController.createRestaurant = async (req, res, next) => {
-    console.log('we re here')
+    console.log('Creating a new restaurant');
     try {
-        const { name, website} = req.body;
+        const { name, website, user } = req.body;
 
-        const existingResto = await PointDeVente.findOne({name});
-console.log('existinng point of sale',existingResto)
+        // Check if the restaurant name already exists
+        const existingResto = await PointDeVente.findOne({ name });
         if (existingResto) {
-            return res.json({ success: false, message: 'Restaurant with this email already exists.' });
+            return res.status(400).json({ success: false, message: 'Restaurant with this name already exists.' });
         }
+
+        // Create a new restaurant document
         const newRestaurant = new PointDeVente({
             name,
-            website
-           
-            
-
-
+            website,
+            user, // Optional, can be undefined
         });
 
         const restaurant = await newRestaurant.save();
-        res.json({ success: true, data: restaurant });
+        res.status(201).json({ success: true, data: restaurant });
     } catch (err) {
-        console.log('something went very wrong');
-        res.json({ error: 'Failed to create restaurant' });
+        console.error('Error creating restaurant:', err.message);
+        res.status(500).json({ error: 'Failed to create restaurant' });
     }
 };
 
@@ -126,7 +125,7 @@ pointDeVenteController.updateRestaurant = async (req, res) => {
       const restaurant = await PointDeVente.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
   
       if (!restaurant) {
-        return res.json({ message: 'Restaurant not found' });
+        return res.json({ message: 'Restaurjdjdjdjant not found' });
       }
   
       // Send the updated restaurant data back to the client
