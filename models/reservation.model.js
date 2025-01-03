@@ -49,7 +49,6 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
     enum: ["enregistré", "Annulé", "en attente", "Arrivé", "Départ", "No show"],
     default: "en attente"
-    // Days of the week
   }
 }, {
   timestamps: true,
