@@ -4,8 +4,8 @@ const GlobalSettings = require('../../models/setting.model');
 const Reservation = require('../../models/reservation.model');
 // const moment = require('moment');
 const moment = require('moment-timezone');
-require('moment/locale/fr');
-moment.locale('fr');
+// require('moment/locale/fr');
+// moment.locale('fr');
  const dayjs = require('dayjs');
 const { emitNewReservation } = require('../../app');
 const reservationController = {};
@@ -625,115 +625,80 @@ reservationController.getOneReservation = async (req, res) => {
 //     res.json({ error: 'Failed to create reservation', details: err.message });
 //   }
 // };
+// Load French localization for moment.js
+
 
 
 reservationController.createReservation = async (req, res) => {
   try {
     const { firstname, lastname, date, phone, email, shiftName, peopleCount } = req.body;
 
-console.log("req.body", req.body)
+    // Validate required fields
+    if (!firstname || !lastname || !date || !phone || !email || !shiftName || peopleCount === undefined) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
     if (peopleCount <= 0) {
-      return res.json({ message: "Invalid reservation: people count must be greater than 0." });
+      return res.status(400).json({ message: "Invalid reservation: people count must be greater than 0." });
     }
 
-    const timezone = "Africa/Casablanca";
-    const requestedTime = moment(date, "ddd. MMM. DD. YYYY HH:mm").tz(timezone);
+    // Set moment locale to French (optional)
+    // moment.locale('fr');
+    const timezone = "Africa/Casablanca"; // Replace with your actual timezone
 
+    // Define the expected date format
+    const expectedFormat = "ddd. MMM. DD. YYYY HH:mm";
+    const requestedTime = moment.tz(date, expectedFormat, timezone);
+
+    // Validate the date format
     if (!requestedTime.isValid()) {
-      return res.status(400).json({ message: "Invalid date format. Expected format: jeu. janv. 02. 2025 12:30." });
+      return res.status(400).json({
+        message: `Invalid date format. Ensure it matches '${expectedFormat}'.`
+      });
     }
 
+    // Ensure the reservation time is in the future
+    if (requestedTime.isBefore(moment().tz(timezone))) {
+      return res.status(400).json({ message: "Reservation time must be in the future." });
+    }
+
+    // Get the day of the week
     const selectedDay = getDayOfWeek(requestedTime.format("YYYY-MM-DD"));
-    const today = moment().startOf("day");
 
-    if (requestedTime.isBefore(moment(), 'minute')) {
-      return res.json({ message: "Reservation time must be in the future." });
-    }
-
+    // Fetch the WeeklyScheet for the selected day
     const scheet = await WeeklyScheet.findOne({ dayname: selectedDay });
+
     if (!scheet || !scheet.isopen) {
-      return res.json({ message: "Reservations are not allowed on this day." });
+      return res.status(400).json({ message: "Reservations are not allowed on this day." });
     }
 
+    // Fetch the shift details
     const shift = scheet.shifts.find(s => s.name === shiftName);
     if (!shift) {
-      return res.json({ message: "No shift found with the provided name." });
+      return res.status(400).json({ message: "No shift found with the provided name." });
     }
 
-    
+    const openingTime = moment.tz(shift.openingTime, 'HH:mm', timezone);
+    const closingTime = moment.tz(shift.closingTime, 'HH:mm', timezone);
 
+    const reservationInterval = scheet.reservationInterval || 60; // Default to 60 minutes if not set
+    const maxPeoplePerInterval = scheet.maxPeoplePerInterval || 10; // Default to 10 if not set
+
+    // Calculate the reservation interval
     const intervalStart = openingTime.clone().add(
       Math.floor(requestedTime.diff(openingTime, "minutes") / reservationInterval) * reservationInterval,
       "minutes"
     );
     const intervalEnd = intervalStart.clone().add(reservationInterval, "minutes");
 
-    // Vérifier si l'heure de réservation demandée est valide dans l'intervalle
-    const openingTime = moment(shift.openingTime, 'HH:mm');
-    const closingTime = moment(shift.closingTime, 'HH:mm');
-
- 
-
-    // Parse current and requested time
-    const currentTime = moment().tz(timezone);
-   
-
-    // Calculate time difference in minutes
-    const timeDifference = requestedTime.diff(currentTime, "minutes"); // Corrected order for positive difference
-
-    console.log("Current Time:", currentTime.format("YYYY-MM-DD HH:mm:ss Z"));
-    console.log("Requested Time:", requestedTime.format("YYYY-MM-DD HH:mm:ss Z"));
-    console.log("Time Difference (Minutes):", timeDifference);
-
-    // Validate reservation time
-    if (timeDifference < 60) { // Less than 60 minutes
-      return res.json({
-        message: "Reservation time must be at least 1 hour ahead of the current time.",
+    // Validate the requested time falls within the shift timings
+    if (requestedTime.isBefore(openingTime) || requestedTime.isAfter(closingTime)) {
+      return res.status(400).json({
+        message: "Reservation time is outside the shift hours."
       });
     }
 
-
-    // Ensure the reservation is for today or later
-    if (inputDate.isBefore(today, 'day')) {
-      return res.json({ message: "Reservation date must be today or in the future." });
-    }
-
-
-
-    if (inputDate.isSame(today, 'day')) {
-      const timezone = "Africa/Casablanca"; // Morocco timezone
-
-      const currentTime = moment().tz(timezone); // Adjust timezone
-      const requestedTime = moment(time, 'HH:mm').tz(timezone); // Ensure the same timezone
-
-      const timeDifferenceMs = currentTime.diff(requestedTime); // In milliseconds
-      const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60); // Convert to minutes
-
-      console.log('Current Timee:', currentTime.format('HH:mm:ss Z'));
-      console.log('Requested Time:', requestedTime.format('HH:mm:ss Z'));
-      console.log('Time Difference (Minutes):', timeDifferenceMinutes);
-
-      if (timeDifferenceMinutes > 0 && timeDifferenceMinutes <= 60) {
-        return res.status(400).json({
-          message: "Reservation time must be at least 1 hour ahead of the current time.",
-        });
-      }
-    }
-
-
-
-   
-    // const intervalStart = openingTime.clone().add(
-    //   Math.floor(requestedTime.diff(openingTime, 'minutes') / reservationInterval) * reservationInterval,
-    //   'minutes'
-    // );
-
-    // const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
-
-    // Calculer le créneau correspondant pour `requestedTime`
-
-
-    // Compter le nombre total de personnes déjà réservées dans cet intervalle
+    // Fetch existing reservations for the same interval
     const peopleAlreadyReserved = await Reservation.aggregate([
       {
         $match: {
@@ -751,12 +716,15 @@ console.log("req.body", req.body)
     ]);
 
     const totalPeopleReserved = peopleAlreadyReserved.length > 0 ? peopleAlreadyReserved[0].totalPeople : 0;
-    console.log('total', totalPeopleReserved, 'people count', peopleCount, 'maxPeople', maxPeoplePerInterval)
-    // Vérifier si le nombre total de personnes dépasse `maxPeoplePerInterval`
+
+    // Check if the maximum people limit is exceeded
     if (totalPeopleReserved + peopleCount > maxPeoplePerInterval) {
-      return res.json({ message: `Cannot create reservation: maximum people for this interval reached.` });
+      return res.status(400).json({
+        message: `Cannot create reservation: maximum people for this interval reached.`
+      });
     }
 
+    // Create the reservation
     const newReservation = new Reservation({
       firstname,
       lastname,
@@ -764,21 +732,23 @@ console.log("req.body", req.body)
       phone,
       email,
       shiftId: shift._id,
-      peopleCount
+      peopleCount,
+      time: requestedTime.format("HH:mm") // Ensure the time is saved correctly
     });
 
-
     const reservation = await newReservation.save();
+
+    // Optionally emit an event for the new reservation
     emitNewReservation(newReservation);
-    console.log('newReservation', newReservation);
 
-
-    res.json({ success: true, data: reservation });
+    res.status(201).json({ success: true, data: reservation });
   } catch (err) {
-    console.error("Error details:", err);
-    res.json({ error: "Failed to create reservation", details: err.message });
+    console.error("Error in createReservation:", err);
+    res.status(500).json({ error: "A server error has occurred", details: err.message });
   }
 };
+
+
 
 
 
