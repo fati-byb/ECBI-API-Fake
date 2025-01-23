@@ -38,38 +38,6 @@ const ensureIndexRemoved = async () => {
   }
 };
 
-// reservationController.getReservationById = async (req, res) => {
-//   const { id } = req.params;
-
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     return res.json({ error: 'Reservation ID is required' });
-//   }
-
-//   try {
-//     const reservation = await Reservation.findById(id);
-
-//     if (!reservation) {
-//       return res.json({ error: 'Reservation not found' });
-//     }
-
-//     const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
-//     const shift = scheet ? scheet.shifts.id(reservation.shiftId) : null;
-
-//     const populatedReservation = {
-//       ...reservation.toObject(),
-//       shift: shift ? {
-//         _id: shift._id,
-//         name: shift.name,
-//         openingTime: shift.openingTime,
-//         closingTime: shift.closingTime
-//       } : null
-//     };
-
-//     res.json(populatedReservation);
-//   } catch (err) {
-//     res.json({ error: 'Failed to fetch reservation', details: err.message });
-//   }
-// };
 
 reservationController.getReservations = async (req, res) => {
 
@@ -195,6 +163,7 @@ reservationController.createReservation = async (req, res) => {
       return res.status(400).json({ message: "Reservations are not allowed on this day." });
     }
 
+    // Fetch the shift details
     const shift = scheet.shifts.find(s => s.name === shiftName);
     if (!shift) {
       return res.status(400).json({ message: "Shift not found." });
