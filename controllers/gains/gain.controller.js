@@ -5,7 +5,7 @@ const gainController = {};
 // Fetch all gains
 gainController.getGains = async (req, res) => {
 
-  const { page = 1, limit = 5} = req.query;
+  const { page, limit} = req.query;
   const skip = (page - 1) * limit;
   try {
     const totalGains = await Gain.countDocuments()

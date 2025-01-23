@@ -95,12 +95,12 @@ WeeklyScheetController.updateShift = async (req, res) => {
   try {
     const scheet = await WeeklyScheet.findById(scheetId);
     if (!scheet) {
-      return res.status(404).json({ message: "Feuille horaire non trouvée" });
+      return res.json({ message: "Feuille horaire non trouvée" });
     }
 
     const shift = scheet.shifts.id(shiftId);
     if (!shift) {
-      return res.status(404).json({ message: "Shift non trouvé" });
+      return res.json({ message: "Shift non trouvé" });
     }
 
     // Mettre à jour les champs du shift
