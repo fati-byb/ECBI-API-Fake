@@ -13,14 +13,14 @@ const ReservationSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
-  time:{
-    type:String,
-    required:false
-  },
+  // time:{
+  //   type:String,
+  //   required:false
+  // },
   date: {
-    type: String,
+    type: Date,
     required: true,
-    trim: true,
+   
   },
   
   // table: {
@@ -51,9 +51,14 @@ const ReservationSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ["enregistré", "Annulé", "en attente", "Arrivé", "Départ", "No show"],
+    enum: ["enregistré", "Annulé", "en attente", "Arrivé", "Départ", "No show","checked in"],
     default: "en attente"
-  }
+  },
+  pointDeVente: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PointDeVente', // Reference the PointDeVente collection
+    required: true, // Make it required if every reservation must belong to a PointDeVente
+  },
 }, {
   timestamps: true,
 });

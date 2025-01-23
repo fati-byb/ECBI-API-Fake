@@ -39,49 +39,40 @@
 //   }
 // }
 
-//  async function fetchAndSendData() {
+// async function fetchAndSendData() {
 //   try {
-//     const res = await axios.get("https://ecbi-api-fake-1.vercel.app/api/reservation/get-reservation");
+//     const res = await axios.get("https://ecbi-api-fake-1.vercel.app/api/reservation/get-reservation?page=1&limit=390");
 
-//     const reservations = res.data;
-// // console.log('res', reservations)
-//      const sortedReservations = reservations.data.sort((a, b) => {
-//       const dateA = new Date(a.createdAt);  
-//       const dateB = new Date(b.createdAt);
-// // console.log('a',dateA)
-// // console.log('b',dateB)
-//        if (isNaN(dateA) || isNaN(dateB)) {
-//         return 0;  
-//       }
+//     const reservations = res.data.data;
+//     console.log('Reservations fetched:', reservations);
 
-//       return dateB - dateA;  
-//     });
+//     // Define headers for the Google Sheet
+//     const headers = ['Id', 'Firstname', 'Lastname', 'Email', 'Phone', 'Date', 'People Count','Point de vente', 'Status'];
 
-//      const latestReservation = sortedReservations[0];
+//     // Map reservations to rows
+//     const rows = reservations.map(reservation => [
+//       reservation._id,
+//       reservation.firstname,
+//       reservation.lastname,
+//       reservation.email,
+//       reservation.phone,
+//       reservation.date,// Format date
+//       // reservation.time,
+//       reservation.peopleCount,
+//       reservation.pointDeVente.name,
+//       reservation.status,
+//     ]);
 
-//     console.log('Latest reservation:', latestReservation);
+//     // Combine headers and rows
+//     const data = [headers, ...rows];
+//     console.log('Formatted data for Google Sheets:', data);
 
-//     const headers = ['Id','Firstname','Lastname', 'Email', 'Phone', 'Date', 'Time', 'People Count', 'Status'];
+//     // Send the data to Google Sheets
+//     await sendDataToGoogleSheet(data);
 
-//      const data = [
-//       headers,
-//       [
-//         latestReservation._id,
-//         latestReservation.firstname,
-//         latestReservation.lastname,
-//         latestReservation.email,
-//         latestReservation.phone,
-//         latestReservation.date ? new Date(latestReservation.date).toISOString() : 'Invalid Date',
-//         latestReservation.time,
-//         latestReservation.peopleCount,
-//         latestReservation.status,
-//       ],
-//     ];
-
-//      await sendDataToGoogleSheet(data);
-
+//     console.log('Data successfully sent to Google Sheets.');
 //   } catch (error) {
-//     console.error('Error fetching data from API:', error);
+//     console.error('Error fetching or sending data:', error);
 //   }
 // }
 

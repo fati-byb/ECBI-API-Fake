@@ -2,6 +2,7 @@
 const WeeklyScheet = require('../../models/shift.model');
 const GlobalSettings = require('../../models/setting.model');
 const Reservation = require('../../models/reservation.model');
+const PointDeVente = require("../../models/pointdevente.model");
  
 
 const moment = require('moment');
@@ -48,15 +49,16 @@ reservationController.getReservations = async (req, res) => {
     const totalReservations = await Reservation.countDocuments();
 
     // Fetch reservations sorted by reservationDate in descending order
-    const reservations = await Reservation.find()
-      .sort({ date: -1 })
+    const reservations = await Reservation.find().populate({ path: 'pointDeVente', select: 'name' })
+    .sort({ createdAt: -1 })
       .skip(Number(skip))
-      .limit(Number(limit));
+      .limit(Number(limit))
+      
+      ;
 
     console.log('Reservations fetched:', reservations.length);
 
-    // Populate shift details for each reservation
-    const populatedReservations = await Promise.all(
+     const populatedReservations = await Promise.all(
       reservations.map(async (reservation) => {
         const scheet = await WeeklyScheet.findOne({ "shifts._id": reservation.shiftId });
         const shift = scheet?.shifts.id(reservation.shiftId);
@@ -105,29 +107,46 @@ reservationController.getOneReservation = async (req, res) => {
 
 
 
+ 
+
 reservationController.createReservation = async (req, res) => {
-  console.log('req', req.body)
-ensureIndexRemoved();
+  console.log('Request body:', req.body);
 
   try {
-    const { firstname, lastname, date, phone, email, shiftName, peopleCount } = req.body;
-    console.log('Raw date from request:', date);
+    const { firstname, lastname, date, phone, email, shiftName, peopleCount, pointDeVenteName } = req.body;
 
-    // Directly parse the ISO date string into a Moment object
-    const inputDate = moment(date); // No need to provide a format for ISO strings
-    console.log('Parsed Moment date:', inputDate.format('YYYY-MM-DD HH:mm'));
+    if (!date) {
+      return res.status(400).json({ message: "Date is required." });
+    }
 
-    // Validate date and people count
-    if (!inputDate.isValid()) {
-      return res.status(400).json({ message: "Invalid date format. Ensure the date is in ISO 8601 format." });
+    const reservationDate = new Date(date);
+    if (isNaN(reservationDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date format." });
+    }
+
+    if (reservationDate < new Date()) {
+      return res.status(400).json({ message: "Reservation time must be in the future." });
+    }
+
+     const minutes = reservationDate.getMinutes();
+    if (minutes === 0) {
+       reservationDate.setSeconds(0);
+    } else if (minutes <= 30) {
+       reservationDate.setMinutes(30);
+      reservationDate.setSeconds(0);
+    } else {
+       reservationDate.setHours(reservationDate.getHours() + 1);
+      reservationDate.setMinutes(0);
+      reservationDate.setSeconds(0);
     }
 
     if (peopleCount <= 0) {
       return res.status(400).json({ message: "People count must be greater than 0." });
     }
 
-    if (inputDate.isBefore(moment())) {
-      return res.status(400).json({ message: "Reservation time must be in the future." });
+    const pointDeVente = await PointDeVente.findOne({ name: pointDeVenteName });
+    if (!pointDeVente) {
+      return res.status(404).json({ message: "Point de Vente not found." });
     }
 
     const globalSettings = await GlobalSettings.findOne();
@@ -136,8 +155,8 @@ ensureIndexRemoved();
     }
     const { reservationInterval, maxPeoplePerInterval } = globalSettings;
 
-    const dayOfWeek = inputDate.format('dddd').toLowerCase();
-    console.log('Day of the week:', dayOfWeek);
+    const dayOfWeek = reservationDate.toLocaleDateString('fr-FR', { weekday: 'long' }).toLowerCase();
+    console.log('Jour de la semaine (en français) :', dayOfWeek);
 
     const scheet = await WeeklyScheet.findOne({ dayname: dayOfWeek });
     if (!scheet || !scheet.isopen) {
@@ -150,27 +169,27 @@ ensureIndexRemoved();
       return res.status(400).json({ message: "Shift not found." });
     }
 
-    const requestedTime = inputDate.format('HH:mm');
-    if (
-      requestedTime < moment(shift.openingTime, 'HH:mm').format('HH:mm') ||
-      requestedTime > moment(shift.closingTime, 'HH:mm').format('HH:mm')
-    ) {
+    const requestedTime = reservationDate.toISOString().substring(11, 16); 
+    const openingTime = shift.openingTime;
+    const closingTime = shift.closingTime;
+
+    if (requestedTime < openingTime || requestedTime > closingTime) {
       return res.status(400).json({ message: "Reservation time is outside of shift hours." });
     }
 
-    // Check for existing reservations in the interval
-    const intervalStart = inputDate.clone().startOf('minute').subtract(inputDate.minute() % reservationInterval, 'minutes');
-    const intervalEnd = intervalStart.clone().add(reservationInterval, 'minutes');
+    const intervalStart = new Date(reservationDate);
+    intervalStart.setMinutes(reservationDate.getMinutes() - (reservationDate.getMinutes() % reservationInterval));
+    const intervalEnd = new Date(intervalStart);
+    intervalEnd.setMinutes(intervalStart.getMinutes() + reservationInterval);
 
     const existingReservations = await Reservation.aggregate([
       {
         $match: {
-          date: inputDate.format('YYYY-MM-DD'),
-          time: { $gte: intervalStart.format('HH:mm'), $lt: intervalEnd.format('HH:mm') },
-          shiftId: shift._id
-        }
+          date: { $gte: intervalStart, $lt: intervalEnd },
+          shiftId: shift._id,
+        },
       },
-      { $group: { _id: null, totalPeople: { $sum: '$peopleCount' } } }
+      { $group: { _id: null, totalPeople: { $sum: '$peopleCount' } } },
     ]);
 
     const totalPeopleReserved = existingReservations.length ? existingReservations[0].totalPeople : 0;
@@ -178,33 +197,32 @@ ensureIndexRemoved();
       return res.status(400).json({ message: "Maximum capacity reached for this interval." });
     }
 
-    // Save reservation
     const newReservation = new Reservation({
       firstname,
       lastname,
-      date: inputDate.format('YYYY-MM-DD'),
-      time: inputDate.format('HH:mm'),
+      date: reservationDate.toISOString(),
       phone,
       email,
       shiftId: shift._id,
       peopleCount,
-      time: requestedTime.format("HH:mm") // Ensure the time is saved correctly
+      pointDeVente: pointDeVente._id,
     });
 
     const savedReservation = await newReservation.save();
-    emitNewReservation(newReservation);
+    emitNewReservation(savedReservation);
 
-    res.status(201).json({ success: true, data:
-      
-      savedReservation,
-      createdAt: moment(savedReservation.createdAt).toISOString(),
-      updatedAt: moment(savedReservation.updatedAt).toISOString()
+    res.status(201).json({
+      success: true,
+      data: savedReservation,
+      createdAt: savedReservation.createdAt.toISOString(),
+      updatedAt: savedReservation.updatedAt.toISOString(),
     });
   } catch (error) {
     console.error("Error creating reservation:", error);
     res.status(500).json({ message: "Failed to create reservation.", error: error.message });
   }
 };
+
 
 
 
@@ -232,9 +250,12 @@ reservationController.updateReservation = async (req, res) => {
 //update reservation status 
 
 reservationController.updateReservationStatus = async (req, res) => {
-  // console.log('we re here 2')
+  console.log('we re here 2')
   const { id } = req.params; // Reservation ID passed as a URL parameter
-  const { status } = req.body; // Status field passed in the request body
+  const { status } = req.body;
+  console.log('id', id,status)
+
+  // Status field passed in the request body
   console.log('updated status', status)
 
   if (!status) {
@@ -280,3 +301,5 @@ reservationController.deleteReservation = async (req, res) => {
 };
 
 module.exports = reservationController;
+
+
