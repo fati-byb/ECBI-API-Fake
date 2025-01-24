@@ -226,13 +226,48 @@ reservationController.createReservation = async (req, res) => {
 
 
 
+// reservationController.updateReservation = async (req, res) => {
+//   const { id } = req.params;
+//   const updateData = req.body;
+// console.log('data', updateData)
+//   // Function to format date and time into ISO 8601 format
+//   const formatDateTime = (date, time) => {
+//     const formattedDateTime = new Date(`${date}T${time}:00.000Z`);
+//     return formattedDateTime.toISOString();
+//   };
+// console.log('format', formatDateTime)
+//    if (updateData.date && updateData.time) {
+//     updateData.dateTime = formatDateTime(updateData.date, updateData.time);
+//     delete updateData.date; // Remove raw date field
+//     delete updateData.time; // Remove raw time field
+//   }
+
+//   // Ensure status is always set to "en attente"
+//   updateData.status = "en attente";
+
+//   try {
+//     const reservation = await Reservation.findByIdAndUpdate(
+//       id,
+//       { $set: updateData },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!reservation) {
+//       return res.json({ message: 'Reservation not found' });
+//     }
+
+//     res.json(reservation);
+//   } catch (error) {
+//     res.json({ message: error.message });
+//   }
+// };
 
 reservationController.updateReservation = async (req, res) => {
 
   const { id } = req.params;
   const updateData = req.body;
   console.log('updated table', updateData)
-const status= "en attente"
+  updateData.status = "en attente";
 
   try {
     const reservation = await Reservation.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
