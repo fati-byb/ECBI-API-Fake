@@ -232,7 +232,7 @@ reservationController.updateReservation = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
   console.log('updated table', updateData)
-
+// const status= "en attente"
 
   try {
     const reservation = await Reservation.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });

@@ -171,7 +171,7 @@ productController.updateProduct = async (req, res) => {
 productController.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Deleting product with ID:', id);
+     await Option.deleteMany({ product: id });
 
     const product = await Product.findByIdAndDelete(id);
 
